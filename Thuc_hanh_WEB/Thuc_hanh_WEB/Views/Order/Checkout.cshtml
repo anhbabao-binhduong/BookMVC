@@ -1,0 +1,270 @@
+﻿@model Thuc_hanh_WEB.Models.CheckoutViewModel
+@{
+    ViewBag.Title = "Thanh toán - BookStore";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var couponCode = Session["CouponCode"] as string ?? "";
+    var couponOk = !string.IsNullOrEmpty(couponCode);
+    var subtotal = Model.Items.Sum(i => i.Price * i.Quantity);
+
+    // Tính lại discount dựa trên subtotal thực tế của checkout (không dùng số cũ từ cart)
+    decimal discount = 0m;
+    if (couponOk)
+    {
+        var result = Thuc_hanh_WEB.Services.CouponService.Apply(couponCode, subtotal);
+        if (result.IsValid)
+        {
+            discount = result.Discount;
+            Session["CouponDiscount"] = discount; // cập nhật lại session
+        }
+        else
+        {
+            // Coupon không còn hợp lệ với subtotal này
+            couponOk = false;
+            couponCode = "";
+            Session.Remove("CouponCode");
+            Session.Remove("CouponDiscount");
+        }
+    }
+
+    var ship = subtotal >= 199000 ? 0m : 30000m;
+    var total = subtotal - discount + ship;
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/checkout.css")" rel="stylesheet" />
+}
+
+<div class="co-page">
+    <div class="co-wrap">
+
+        <!-- HEADER -->
+        <div class="co-header">
+            <a href="@Url.Action("Index","Cart")" class="co-back">← Giỏ hàng</a>
+            <span class="co-sep">›</span>
+            <h1 class="co-title">Thanh toán</h1>
+        </div>
+
+        <!-- STEPS -->
+        <div class="co-steps">
+            <div class="co-step done">
+                <div class="co-step__num">✓</div>
+                <span>Giỏ hàng</span>
+            </div>
+            <div class="co-step__arrow"></div>
+            <div class="co-step active">
+                <div class="co-step__num">2</div>
+                <span>Thanh toán</span>
+            </div>
+            <div class="co-step__arrow"></div>
+            <div class="co-step">
+                <div class="co-step__num">3</div>
+                <span>Xác nhận</span>
+            </div>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="co-alert co-alert-err">⚠ @TempData["Error"]</div>
+        }
+
+        @using (Html.BeginForm("PlaceOrder", "Order", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="co-layout">
+
+                <!-- LEFT -->
+                <div class="co-left">
+
+                    <!-- ĐỊA CHỈ GIAO HÀNG -->
+                    <div class="co-card">
+                        <div class="co-card-head">
+                            <h2 class="co-card-title">
+                                <span class="co-card-ico">📦</span>
+                                Địa chỉ giao hàng
+                            </h2>
+                        </div>
+                        <div class="co-card-body">
+                            <div class="co-grid">
+                                <div class="co-fg">
+                                    <label class="co-label">Họ và tên *</label>
+                                    <input type="text" name="FullName" class="co-input"
+                                           value="@Model.FullName" placeholder="Nguyễn Văn A" required />
+                                </div>
+                                <div class="co-fg">
+                                    <label class="co-label">Số điện thoại *</label>
+                                    <input type="text" name="Phone" class="co-input"
+                                           value="@Model.Phone" placeholder="09xxxxxxxx" required />
+                                </div>
+                                <div class="co-fg co-col2">
+                                    <label class="co-label">Địa chỉ giao hàng *</label>
+                                    <input type="text" name="Address" class="co-input"
+                                           value="@Model.Address" placeholder="Số nhà, đường, phường/xã, quận, tỉnh..." required />
+                                </div>
+                                <div class="co-fg co-col2">
+                                    <label class="co-label">Ghi chú cho đơn hàng</label>
+                                    <textarea name="Note" class="co-textarea"
+                                              placeholder="VD: Giao giờ hành chính, gọi trước khi giao...">@Model.Note</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PHƯƠNG THỨC THANH TOÁN -->
+                    <div class="co-card">
+                        <div class="co-card-head">
+                            <h2 class="co-card-title">
+                                <span class="co-card-ico">💳</span>
+                                Phương thức thanh toán
+                            </h2>
+                        </div>
+                        <div class="co-card-body">
+                            <div class="co-pay-options">
+
+                                <!-- COD -->
+                                <div class="co-pay-opt selected" id="opt-cod" onclick="choosePay(this, 'COD')">
+                                    <input type="radio" name="PaymentMethod" value="COD" checked="checked" />
+                                    <div class="co-pay-icon">🚚</div>
+                                    <div class="co-pay-info">
+                                        <div class="co-pay-name">Thanh toán khi nhận hàng (COD)</div>
+                                        <div class="co-pay-desc">Trả tiền mặt khi nhận được sách</div>
+                                    </div>
+                                </div>
+
+                                <!-- CHUYỂN KHOẢN -->
+                                <div class="co-pay-opt" id="opt-bank" onclick="choosePay(this, 'BankTransfer')">
+                                    <input type="radio" name="PaymentMethod" value="BankTransfer" />
+                                    <div class="co-pay-icon">🏦</div>
+                                    <div class="co-pay-info">
+                                        <div class="co-pay-name">Chuyển khoản ngân hàng</div>
+                                        <div class="co-pay-desc">Chuyển khoản trước, giao hàng sau khi xác nhận</div>
+                                    </div>
+                                </div>
+                                <div class="co-bank-detail" id="bank-detail">
+                                    <strong>Ngân hàng:</strong> Vietcombank<br />
+                                    <strong>Số TK:</strong> 1234 5678 9012<br />
+                                    <strong>Chủ TK:</strong> BOOKSTORE VIET NAM<br />
+                                    <strong>Nội dung CK:</strong> <span id="bank-content">DH + Số điện thoại</span>
+                                </div>
+
+                                <!-- VNPAY -->
+                                <div class="co-pay-opt" id="opt-vnpay" onclick="choosePay(this, 'VNPAY')">
+                                    <input type="radio" name="PaymentMethod" value="VNPAY" />
+                                    <div class="co-pay-icon">💜</div>
+                                    <div class="co-pay-info">
+                                        <div class="co-pay-name">VNPAY</div>
+                                        <div class="co-pay-desc">Thanh toán qua cổng VNPAY, ATM, QR Code</div>
+                                    </div>
+                                    <span class="co-pay-badge">Nhanh</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: ORDER SUMMARY -->
+                <div class="co-right">
+                    <div class="co-summary-card">
+                        <div class="co-summary-head">
+                            <div class="co-summary-title">Đơn hàng của bạn</div>
+                        </div>
+                        <div class="co-summary-body">
+
+                            <!-- ITEMS -->
+                            <div class="co-order-items">
+                                @foreach (var item in Model.Items)
+                                {
+                                    <div class="co-order-item">
+                                        <img src="@(item.Image != null && item.Image.StartsWith("/") ? item.Image : Url.Content("~/Content/images/" + item.Image))"
+                                             alt="@item.Title" class="co-order-item__img"
+                                             onerror="this.src='@Url.Content("~/Content/images/placeholder.jpg")'" />
+                                        <div class="co-order-item__info">
+                                            <div class="co-order-item__title">@item.Title</div>
+                                            <div class="co-order-item__qty">x@(item.Quantity)</div>
+                                        </div>
+                                        <div class="co-order-item__price">
+                                            @string.Format("{0:N0}đ", item.Price * item.Quantity)
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (couponOk)
+                            {
+                                <div class="co-coupon-tag">
+                                    🎟 @couponCode — Đã áp mã giảm giá
+                                </div>
+                            }
+
+                            <!-- BREAKDOWN -->
+                            <div class="co-breakdown">
+                                <div class="co-breakdown-row">
+                                    <span>Tạm tính (@Model.Items.Sum(i => i.Quantity) sản phẩm)</span>
+                                    <span>@string.Format("{0:N0}đ", subtotal)</span>
+                                </div>
+                                <div class="co-breakdown-row">
+                                    <span>Phí vận chuyển</span>
+                                    <span>@(ship == 0 ? "Miễn phí" : string.Format("{0:N0}đ", ship))</span>
+                                </div>
+                                @if (couponOk && discount > 0)
+                                {
+                                    <div class="co-breakdown-row discount">
+                                        <span>Giảm giá (@couponCode)</span>
+                                        <span>−@string.Format("{0:N0}đ", discount)</span>
+                                    </div>
+                                }
+                                <div class="co-breakdown-divider"></div>
+                                <div class="co-breakdown-row total">
+                                    <span>Tổng cộng</span>
+                                    <span>@string.Format("{0:N0}đ", total)</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="co-submit-btn">
+                                🔒 Đặt hàng ngay
+                            </button>
+                            <div class="co-secure">
+                                <span>🔒 Bảo mật SSL</span>
+                                <span>↩ Đổi trả 7 ngày</span>
+                                <span>📦 Giao tận nơi</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function choosePay(el, value) {
+            document.querySelectorAll('.co-pay-opt').forEach(function (opt) {
+                opt.classList.remove('selected');
+                opt.querySelector('input[type="radio"]').checked = false;
+            });
+            el.classList.add('selected');
+            el.querySelector('input[type="radio"]').checked = true;
+
+            var bankDetail = document.getElementById('bank-detail');
+            if (value === 'BankTransfer') {
+                bankDetail.classList.add('show');
+                var phone = document.querySelector('input[name="Phone"]').value;
+                document.getElementById('bank-content').textContent = 'DH ' + (phone || '[SĐT]');
+            } else {
+                bankDetail.classList.remove('show');
+            }
+        }
+
+        // live update bank content khi nhập SĐT
+        document.querySelector('input[name="Phone"]').addEventListener('input', function () {
+            var bc = document.getElementById('bank-content');
+            if (bc) bc.textContent = 'DH ' + (this.value || '[SĐT]');
+        });
+    </script>
+}

@@ -1,0 +1,73 @@
+﻿@model Thuc_hanh_WEB.Models.Publisher
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Thêm Nhà xuất bản Mới";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h4 class="mb-0 text-primary"><i class="fas fa-plus-circle me-2"></i>Thêm Nhà xuất bản mới</h4>
+            </div>
+            <div class="card-body p-4">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger border-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-1"></i> <strong>Đã xảy ra lỗi:</strong>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 mt-2" })
+                        </div>
+                    }
+
+                    <div class="row gx-5">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.Name, "Tên nhà xuất bản", new { @class = "form-label fw-semibold" })
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light"><i class="far fa-building text-muted"></i></span>
+                                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Nhập tên NXB..." })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.Address, "Địa chỉ", new { @class = "form-label fw-semibold" })
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                                    @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "Số nhà, Đường, Phường, Quận, Thành phố..." })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.Phone, "Số điện thoại", new { @class = "form-label fw-semibold" })
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light"><i class="fas fa-phone-alt text-muted"></i></span>
+                                    @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", type = "tel", placeholder = "0123.456.789" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.Email, "Thư điện tử (Email)", new { @class = "form-label fw-semibold" })
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-light"><i class="far fa-envelope text-muted"></i></span>
+                                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", placeholder = "contact@nxb.example.com" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                        <a href="@Url.Action("Index")" class="btn btn-light border px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i> Lưu thông tin</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

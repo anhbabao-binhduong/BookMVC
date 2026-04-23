@@ -1,0 +1,625 @@
+﻿@model List<Thuc_hanh_WEB.Models.CartItem>
+
+@{
+    ViewBag.Title = "Giỏ hàng - BookStore";
+    // Lấy danh sách sản phẩm đã chọn từ Session
+    var selected = Session["SelectedBookIDs"] as List<int> ?? new List<int>();
+    var subtotal = Model.Sum(c => c.Price * c.Quantity);
+    var discount = Session["CouponDiscount"] != null ? (decimal)Session["CouponDiscount"] : 0m;
+    var couponCode = Session["CouponCode"] as string ?? "";
+    var couponOk = !string.IsNullOrEmpty(couponCode);
+    var couponMsg = TempData["CouponMessage"] as string ?? "";
+    var total = subtotal - discount;
+    double discountRate = subtotal > 0 && couponOk ? (double)(discount / subtotal) : 0;
+}
+
+@section styles {
+    <!-- Giữ nguyên phần styles như cũ -->
+    <link href="@Url.Content("~/Content/css/cart.css")" rel="stylesheet" />
+    <style>
+        .cart-item {
+            position: relative;
+            transition: opacity 0.2s ease;
+        }
+
+            .cart-item.is-unselected {
+                opacity: 0.45;
+            }
+
+        .cart-item__check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 32px;
+        }
+
+            .cart-item__check input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                accent-color: #c8862a;
+                cursor: pointer;
+            }
+
+        .cart-select-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: #fdf8f2;
+            border: 1px solid #f0e0c8;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 0.92rem;
+            color: #5a4a3a;
+        }
+
+            .cart-select-bar label {
+                cursor: pointer;
+                user-select: none;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .cart-select-bar input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                accent-color: #c8862a;
+                cursor: pointer;
+            }
+
+        .cart-select-bar__count {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+            .cart-select-bar__count strong {
+                color: #c8862a;
+            }
+
+        .cart-select-bar__delete {
+            background: none;
+            border: 1px solid #e57373;
+            color: #e57373;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+            .cart-select-bar__delete:hover {
+                background: #e57373;
+                color: #fff;
+            }
+
+            .cart-select-bar__delete:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+        .cart-checkout-btn {
+            display: block;
+            text-align: center;
+            background: #c8862a;
+            color: #fff;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background 0.2s;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+            .cart-checkout-btn:hover {
+                background: #a8691a;
+            }
+
+            .cart-checkout-btn:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+        .cart-no-select-msg {
+            display: none;
+            color: #e57373;
+            font-size: 0.83rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .cart-alert-error {
+            background: #fff3f3;
+            border: 1px solid #ffb3b3;
+            color: #c0392b;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+    </style>
+}
+
+<div class="cart-page">
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="cart-header">
+            <div class="cart-header__left">
+                <a href="@Url.Action("Index","Home")" class="cart-back">← Tiếp tục mua sắm</a>
+                <h1 class="cart-title">Giỏ hàng</h1>
+            </div>
+            @if (Model.Any())
+            {
+                <span class="cart-header__count">@Model.Sum(c => c.Quantity) sản phẩm</span>
+            }
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="cart-alert-error">⚠ @TempData["Error"]</div>
+        }
+
+        @if (!Model.Any())
+        {
+            <!-- EMPTY STATE -->
+            <div class="cart-empty">
+                <div class="cart-empty__icon">🛒</div>
+                <h2>Giỏ hàng trống</h2>
+                <p>Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
+                <a href="@Url.Action("Index","Home")" class="cart-empty__btn">
+                    Khám phá sách ngay →
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="cart-layout">
+
+                <!-- LEFT: ITEMS -->
+                <div class="cart-items">
+
+                    <!-- THANH CHỌN TẤT CẢ -->
+                    <div class="cart-select-bar">
+                        <label>
+                            <input type="checkbox"
+                                   id="check-all"
+                                   onchange="toggleAll(this)" />
+                            Chọn tất cả
+                        </label>
+                        <span class="cart-select-bar__count">
+                            Đã chọn: <strong id="selected-count">@selected.Count</strong> / @Model.Count sản phẩm
+                        </span>
+                        <button type="button" class="cart-select-bar__delete" id="delete-selected-btn"
+                                onclick="deleteSelected()" @(selected.Count == 0 ? "disabled" : "")>
+                            🗑 Xóa đã chọn
+                        </button>
+                    </div>
+
+                    <div class="cart-items__head">
+                        <span></span>
+                        <span>Sản phẩm</span>
+                        <span>Số lượng</span>
+                        <span>Thành tiền</span>
+                    </div>
+
+                    @foreach (var item in Model)
+                    {
+                        var isSelected = selected.Contains(item.BookID);
+                        <div class="cart-item @(isSelected ? "" : "is-unselected")" data-id="@item.BookID" data-price="@item.Price" data-qty="@item.Quantity">
+
+                            <div class="cart-item__check">
+                                <input type="checkbox"
+                                       class="item-check"
+                                       value="@item.BookID"
+                                       @(isSelected ? "checked" : "")
+                                       onchange="onItemCheck()" />
+                            </div>
+
+                            <div class="cart-item__img">
+                                <img src="@(item.Image != null && item.Image.StartsWith("/") ? item.Image : Url.Content("~/Content/images/" + item.Image))"
+                                     alt="@item.Title" />
+                            </div>
+
+                            <div class="cart-item__info">
+                                <h3 class="cart-item__title">@item.Title</h3>
+                                <p class="cart-item__price">@string.Format("{0:N0}đ", item.Price)</p>
+                                <a href="@Url.Action("Remove","Cart", new { id = item.BookID })"
+                                   class="cart-item__remove">🗑 Xóa</a>
+                            </div>
+
+                            <div class="cart-item__qty">
+                                <a href="@Url.Action("Decrease","Cart", new { id = item.BookID })" class="qty-btn">−</a>
+                                <span class="qty-num">@item.Quantity</span>
+                                <a href="@Url.Action("Increase","Cart", new { id = item.BookID })" class="qty-btn">+</a>
+                            </div>
+
+                            <div class="cart-item__total">
+                                @string.Format("{0:N0}đ", item.Price * item.Quantity)
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- RIGHT: SUMMARY -->
+                <div class="cart-summary">
+
+                    <h2 class="cart-summary__title">Tóm tắt đơn hàng</h2>
+
+                    <!-- COUPON BOX -->
+                    <div class="coupon-box">
+                        <div class="coupon-box__label">🎟 Mã khuyến mãi</div>
+
+                        @if (couponOk)
+                        {
+                            <div class="coupon-applied">
+                                <div class="coupon-applied__left">
+                                    <span class="coupon-applied__check">✓</span>
+                                    <div>
+                                        <p class="coupon-applied__code">@couponCode</p>
+                                        <p class="coupon-applied__msg">Mã giảm giá đã được áp dụng</p>
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("RemoveCoupon","Cart")" class="coupon-applied__remove">✕</a>
+                            </div>
+                        }
+                        else
+                        {
+                            using (Html.BeginForm("ApplyCoupon", "Cart", FormMethod.Post, new { @class = "coupon-form", id = "coupon-form" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <div class="coupon-input-wrap">
+                                    <input type="text" name="couponCode"
+                                           class="coupon-input @(!string.IsNullOrEmpty(couponMsg) ? "coupon-input--error" : "")"
+                                           placeholder="Nhập mã giảm giá..."
+                                           value="@couponCode"
+                                           autocomplete="off" />
+                                    <button type="submit" class="coupon-btn" id="apply-coupon-btn">Áp dụng</button>
+                                </div>
+                                if (!string.IsNullOrEmpty(couponMsg))
+                                {
+                                    <p class="coupon-error">⚠ @couponMsg</p>
+                                }
+                            }
+                            <div class="coupon-hints">
+                                <span class="coupon-hints__label">Mã hot:</span>
+                                <button type="button" class="coupon-hint" onclick="fillCoupon('WEEKEND40')">WEEKEND40</button>
+                                <button type="button" class="coupon-hint" onclick="fillCoupon('STUDY30')">STUDY30</button>
+                                <button type="button" class="coupon-hint" onclick="fillCoupon('NEWBOOK50')">NEWBOOK50</button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- PRICE BREAKDOWN -->
+                    <div class="cart-breakdown">
+                        @{
+                            // Tính toán lại dựa trên sản phẩm đã chọn
+                            var selectedSubtotal = Model.Where(c => selected.Contains(c.BookID)).Sum(c => c.Price * c.Quantity);
+                            var selectedShip = selectedSubtotal >= 199000 ? 0 : 30000;
+                            var selectedDiscount = couponOk ? (selectedSubtotal > 0 ? discount : 0) : 0;
+                            var selectedGrandTotal = selectedSubtotal - selectedDiscount + selectedShip;
+                        }
+                        <div class="cart-breakdown__row">
+                            <span>Tạm tính (<span id="summary-count">@selected.Count</span> sp)</span>
+                            <span id="summary-subtotal">@string.Format("{0:N0}đ", selectedSubtotal)</span>
+                        </div>
+                        <div class="cart-breakdown__row">
+                            <span>Phí vận chuyển</span>
+                            <span class="text-green" id="summary-ship">
+                                @(selectedShip == 0 ? "Miễn phí" : "30.000đ")
+                            </span>
+                        </div>
+                        @if (selectedDiscount > 0)
+                        {
+                            <div class="cart-breakdown__row cart-breakdown__row--discount" id="discount-row">
+                                <span>Giảm giá (@couponCode)</span>
+                                <span id="summary-discount">−@string.Format("{0:N0}đ", selectedDiscount)</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cart-breakdown__row cart-breakdown__row--discount" id="discount-row" style="display: none;">
+                                <span>Giảm giá</span>
+                                <span id="summary-discount">0đ</span>
+                            </div>
+                        }
+                        <div class="cart-breakdown__divider"></div>
+                        <div class="cart-breakdown__row cart-breakdown__row--total">
+                            <span>Tổng cộng</span>
+                            <span id="grand-total">
+                                @string.Format("{0:N0}đ", selectedGrandTotal)
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (selectedSubtotal < 199000 && selectedSubtotal > 0)
+                    {
+                        <div id="free-ship-hint" class="free-ship-hint">
+                            🚚 Mua thêm <strong id="ship-diff">@string.Format("{0:N0}đ", 199000 - selectedSubtotal)</strong> để được miễn phí ship
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="free-ship-hint" class="free-ship-hint" style="display:none">
+                            🚚 Mua thêm <strong id="ship-diff"></strong> để được miễn phí ship
+                        </div>
+                    }
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="button" class="cart-checkout-btn" id="checkout-btn" onclick="submitCheckout()" @(selected.Count == 0 ? "disabled" : "")>
+                        <i class="fas fa-lock"></i>
+                        Thanh toán ngay (<span id="checkout-count">@selected.Count</span> sản phẩm)
+                    </button>
+                    <p class="cart-no-select-msg" id="no-select-msg" style="@(selected.Count == 0 ? "display:block;" : "display:none;")">
+                        ⚠ Vui lòng chọn ít nhất một sản phẩm
+                    </p>
+
+                    <div class="cart-secure">
+                        <span>🔒 Thanh toán bảo mật SSL</span>
+                        <span>↩ Đổi trả trong 7 ngày</span>
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+    var DISCOUNT_RATE = @(discountRate.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture));
+    var HAS_COUPON    = @(couponOk ? "true" : "false");
+    var FIXED_DISCOUNT = @discount;
+
+    function formatVND(n) {
+        return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
+    }
+
+    function updateSummary() {
+        var checks        = document.querySelectorAll('.item-check');
+        var subtotal      = 0;
+        var selectedItems = 0;
+        var selectedIds = [];
+
+        checks.forEach(function(cb) {
+            var row   = cb.closest('.cart-item');
+            var price = parseFloat(row.getAttribute('data-price')) || 0;
+            var qty   = parseInt(row.getAttribute('data-qty'))     || 0;
+            var id    = parseInt(row.getAttribute('data-id'));
+
+            if (cb.checked) {
+                subtotal += price * qty;
+                selectedItems++;
+                selectedIds.push(id);
+                row.classList.remove('is-unselected');
+            } else {
+                row.classList.add('is-unselected');
+            }
+        });
+
+        // Lưu trạng thái checkbox vào Session qua AJAX
+        saveSelectedIds(selectedIds);
+
+        var ship     = subtotal >= 199000 ? 0 : 30000;
+
+        // Tính discount dựa trên subtotal của sản phẩm đã chọn
+        var discount = 0;
+        if (HAS_COUPON) {
+            if (DISCOUNT_RATE > 0) {
+                // Discount theo %
+                discount = Math.round(subtotal * DISCOUNT_RATE);
+            } else {
+                // Discount cố định (chỉ áp dụng nếu subtotal >= discount)
+                discount = subtotal >= FIXED_DISCOUNT ? FIXED_DISCOUNT : 0;
+            }
+        }
+
+        var grand    = subtotal - discount + ship;
+
+        document.getElementById('summary-subtotal').textContent = formatVND(subtotal);
+        document.getElementById('summary-count').textContent    = selectedItems;
+        document.getElementById('summary-ship').textContent     = ship === 0 ? 'Miễn phí' : '30.000đ';
+        document.getElementById('grand-total').textContent      = formatVND(grand);
+        document.getElementById('selected-count').textContent   = selectedItems;
+        document.getElementById('checkout-count').textContent   = selectedItems;
+
+        var discountRow = document.getElementById('discount-row');
+        if (discountRow) {
+            if (discount > 0) {
+                discountRow.style.display = 'flex';
+                document.getElementById('summary-discount').textContent = '−' + formatVND(discount);
+            } else {
+                discountRow.style.display = 'none';
+            }
+        }
+
+        var freeHint = document.getElementById('free-ship-hint');
+        if (subtotal > 0 && subtotal < 199000) {
+            freeHint.style.display = '';
+            document.getElementById('ship-diff').textContent = formatVND(199000 - subtotal);
+        } else {
+            freeHint.style.display = 'none';
+        }
+
+        var none = selectedItems === 0;
+        document.getElementById('checkout-btn').disabled       = none;
+        document.getElementById('no-select-msg').style.display = none ? 'block' : 'none';
+
+        var delBtn = document.getElementById('delete-selected-btn');
+        if (delBtn) delBtn.disabled = none;
+
+        var checkAll = document.getElementById('check-all');
+        var total    = checks.length;
+
+        if (selectedItems === total) {
+            checkAll.indeterminate = false;
+            checkAll.checked = true;
+        } else if (selectedItems === 0) {
+            checkAll.indeterminate = false;
+            checkAll.checked = false;
+        } else {
+            checkAll.indeterminate = true;
+        }
+    }
+
+    // Hàm lưu danh sách ID đã chọn vào Session qua AJAX
+    function saveSelectedIds(selectedIds) {
+        fetch('@Url.Action("SaveSelectedIds", "Cart")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(selectedIds)
+        }).catch(function(error) {
+            console.error('Error saving selected IDs:', error);
+        });
+    }
+
+    // Xử lý form coupon - thêm selectedIds
+    document.getElementById("coupon-form")?.addEventListener("submit", function(e) {
+        // Xóa input cũ nếu có
+        document.querySelectorAll(".coupon-selected").forEach(e => e.remove());
+
+        var checked = document.querySelectorAll('.item-check:checked');
+
+        if (checked.length === 0) {
+            e.preventDefault();
+            alert('Vui lòng chọn ít nhất một sản phẩm để áp dụng mã giảm giá!');
+            return false;
+        }
+
+        checked.forEach(function (cb) {
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "selectedIds";
+            input.value = cb.value;
+            input.classList.add("coupon-selected");
+            document.getElementById("coupon-form").appendChild(input);
+        });
+
+        return true;
+    });
+
+    // Xử lý checkbox chọn tất cả
+    function toggleAll(source) {
+        document.querySelectorAll('.item-check').forEach(function(cb) {
+            cb.checked = source.checked;
+        });
+        updateSummary();
+    }
+
+    // Xử lý khi click vào checkbox sản phẩm
+    function onItemCheck() {
+        updateSummary();
+    }
+
+    // Xử lý thanh toán
+    function submitCheckout() {
+        var checked = document.querySelectorAll('.item-check:checked');
+        if (checked.length === 0) {
+            document.getElementById('no-select-msg').style.display = 'block';
+            return;
+        }
+
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '@Url.Action("CheckoutSelected", "Cart")';
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        var tokenInput = document.createElement('input');
+        tokenInput.type  = 'hidden';
+        tokenInput.name  = '__RequestVerificationToken';
+        tokenInput.value = token;
+        form.appendChild(tokenInput);
+
+        checked.forEach(function(cb) {
+            var inp   = document.createElement('input');
+            inp.type  = 'hidden';
+            inp.name  = 'selectedIds';
+            inp.value = cb.value;
+            form.appendChild(inp);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Xóa sản phẩm đã chọn
+    function deleteSelected() {
+        var checks = document.querySelectorAll('.item-check:checked');
+        if (checks.length === 0) return;
+        if (!confirm('Xóa ' + checks.length + ' sản phẩm đã chọn?')) return;
+
+        var ids = Array.from(checks).map(function(cb) { return cb.value; });
+
+        Promise.all(ids.map(function(id) {
+            return fetch('@Url.Action("Remove","Cart")?id=' + id, {
+                method: 'GET',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            });
+        })).then(function() {
+            window.location.reload();
+        }).catch(function(error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi xóa sản phẩm!');
+        });
+    }
+
+    // Điền mã coupon
+    function fillCoupon(code) {
+        var input = document.querySelector('.coupon-input');
+        if (input) {
+            input.value = code;
+            input.focus();
+        }
+    }
+
+    // Khởi tạo
+    document.addEventListener("DOMContentLoaded", function () {
+        updateSummary();
+
+        // Thêm event listeners cho các nút tăng/giảm số lượng
+        document.querySelectorAll('.qty-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                // Lưu trạng thái checkbox hiện tại trước khi chuyển trang
+                var selectedIds = [];
+                document.querySelectorAll('.item-check:checked').forEach(function(cb) {
+                    selectedIds.push(cb.value);
+                });
+                sessionStorage.setItem('tempSelectedIds', JSON.stringify(selectedIds));
+            });
+        });
+
+        // Khôi phục trạng thái checkbox từ sessionStorage nếu có
+        var tempSelected = sessionStorage.getItem('tempSelectedIds');
+        if (tempSelected) {
+            sessionStorage.removeItem('tempSelectedIds');
+            // Đợi một chút để trang load xong
+            setTimeout(function() {
+                var selectedIds = JSON.parse(tempSelected);
+                document.querySelectorAll('.item-check').forEach(function(cb) {
+                    if (selectedIds.includes(cb.value)) {
+                        cb.checked = true;
+                    }
+                });
+                updateSummary();
+            }, 100);
+        }
+    });
+    </script>
+}

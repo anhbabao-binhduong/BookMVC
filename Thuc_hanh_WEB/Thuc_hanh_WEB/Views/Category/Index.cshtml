@@ -1,0 +1,88 @@
+﻿@model IEnumerable<Thuc_hanh_WEB.Models.Category>
+
+@{
+    ViewBag.Title = "Danh mục sách - BookStore";
+    var totalCategories = Model != null ? Model.Count() : 0;
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/category-index.css")" rel="stylesheet" />
+}
+
+@{
+    var icons = new List<string> { "📖", "🔬", "🎭", "🌍", "💡", "🎨", "🏛️", "🧠", "📝", "🌱" };
+    int i = 0;
+}
+
+<div class="ci-page">
+
+    <!-- HERO SECTION -->
+    <section class="ci-hero">
+        <div class="ci-hero__bg">
+            <div class="ci-hero__lines"></div>
+        </div>
+        <div class="container">
+            <div class="ci-hero__content">
+                <span class="ci-hero__label">BookStore Collection</span>
+                <h1 class="ci-hero__title">Khám phá<br><em>Thế giới sách</em></h1>
+                <p class="ci-hero__sub">
+                    Hàng nghìn đầu sách chất lượng được tuyển chọn từ các tác giả nổi tiếng trong và ngoài nước.
+                </p>
+                <div class="ci-hero__stat">
+                    <span class="ci-hero__num">@totalCategories</span>
+                    <span class="ci-hero__unit">Danh mục</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORY GRID -->
+    <section class="ci-grid-section">
+        <div class="container">
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="ci-empty">
+                    <span class="ci-empty__icon">📚</span>
+                    <p>Chưa có danh mục nào được thêm</p>
+                </div>
+            }
+            else
+            {
+                <div class="ci-grid">
+                    @foreach (var category in Model)
+                    {
+                        var icon = icons[i % icons.Count];
+                        i++;
+                        <a href="@Url.Action("Details","Category", new { id = category.CategoryID })"
+                           class="ci-card" style="--delay: @(i * 0.07)s">
+
+                            <div class="ci-card__icon-wrap">
+                                <span class="ci-card__icon">@icon</span>
+                            </div>
+
+                            <div class="ci-card__body">
+                                <h3 class="ci-card__name">@category.CategoryName</h3>
+                                <p class="ci-card__desc">
+                                    @(string.IsNullOrEmpty(category.Description)
+                                        ? "Tuyển tập sách được nhiều độc giả yêu thích."
+                                        : category.Description)
+                                </p>
+                            </div>
+
+                            <div class="ci-card__footer">
+                                <span class="ci-card__count">
+                                    @(category.Books != null ? category.Books.Count : 0) cuốn sách
+                                </span>
+                                <span class="ci-card__arrow">→</span>
+                            </div>
+
+                        </a>
+                    }
+                </div>
+            }
+
+        </div>
+    </section>
+
+</div>

@@ -1,0 +1,609 @@
+﻿@model Thuc_hanh_WEB.Models.Book
+@{
+    ViewBag.Title = Model.Title;
+    var relatedBooks = ViewBag.RelatedBooks as List<Thuc_hanh_WEB.Models.Book>;
+}
+
+@section head {
+    <link href="~/Content/css/home.css" rel="stylesheet" />
+    <style>
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+            margin-bottom: 40px;
+        }
+
+        .breadcrumb-bar .bc {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-bar .bc a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-bar .bc a:hover { color: var(--primary); }
+
+        .breadcrumb-bar .bc .sep { color: #d0cdc8; }
+        .breadcrumb-bar .bc .current { color: var(--text); }
+
+        /* ===== BOOK DETAIL LAYOUT ===== */
+        .detail-wrap { display: flex; gap: 48px; align-items: flex-start; }
+
+        /* LEFT – IMAGE */
+        .detail-img-col { flex-shrink: 0; width: 300px; }
+
+        .detail-img-box {
+            background: #f0ece4;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 12px 40px rgba(30,26,20,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-img-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,107,53,0.04) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .detail-img-box img {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+            transition: transform 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .detail-img-box:hover img { transform: scale(1.03); }
+
+        /* Stock badge */
+        .stock-badge-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .stock-badge.in { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .stock-badge.out { background: #fff5f5; color: #e11d48; border: 1px solid #fecdd3; }
+
+        /* RIGHT – INFO */
+        .detail-info-col { flex: 1; min-width: 0; }
+
+        .detail-category-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-l);
+            color: var(--primary);
+            border: 1px solid #ffd0bc;
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+        }
+
+        .detail-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.25;
+            margin-bottom: 16px;
+        }
+
+        .detail-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .detail-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+        }
+
+        .detail-meta-row .meta-icon {
+            width: 32px; height: 32px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .detail-meta-row .meta-label { color: var(--muted); font-weight: 600; min-width: 90px; }
+        .detail-meta-row .meta-value { color: var(--text); font-weight: 700; }
+
+        /* Price */
+        .detail-price-box {
+            background: linear-gradient(135deg, #fff0ea, #fff8f5);
+            border: 1.5px solid #ffd0bc;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .detail-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .detail-price-note {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .detail-price-tags { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+        .detail-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .detail-tag.ship { background: #ecfdf5; color: #059669; }
+        .detail-tag.ret  { background: #eff6ff; color: #3b82f6; }
+
+        /* Action buttons */
+        .detail-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .btn-detail-cart {
+            flex: 1;
+            padding: 14px 0;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-size: 0.95rem;
+            font-weight: 800;
+            font-family: 'Nunito', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-detail-cart:hover { background: var(--primary-l); }
+
+        .btn-detail-buy {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-d));
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            font-family: 'Nunito', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(255,107,53,0.35);
+        }
+
+        .btn-detail-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255,107,53,0.45);
+        }
+
+        .btn-detail-wish {
+            width: 50px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .btn-detail-wish:hover { border-color: #f43f5e; color: #f43f5e; background: #fff5f5; }
+
+        .btn-disabled-stock {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: not-allowed;
+        }
+
+        /* Guarantee strip */
+        .detail-guarantee {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .guarantee-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .guarantee-item i { color: var(--primary); }
+
+        /* ===== DESCRIPTION TAB ===== */
+        .desc-section {
+            margin-top: 52px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+        }
+
+        .desc-section h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .desc-section h4 i { color: var(--primary); }
+
+        .desc-section p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.85;
+            margin: 0;
+        }
+
+        /* ===== RELATED BOOKS ===== */
+        .related-section { margin-top: 60px; margin-bottom: 60px; }
+
+        .related-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            height: 100%;
+        }
+
+        .related-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(30,26,20,0.12);
+            border-color: transparent;
+        }
+
+        .related-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+
+        .related-card:hover img { transform: scale(1.05); }
+
+        .related-card-body { padding: 14px; }
+
+        .related-card-title {
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .related-card-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @@media (max-width: 768px) {
+            .detail-wrap { flex-direction: column; gap: 28px; }
+            .detail-img-col { width: 100%; max-width: 280px; margin: 0 auto; }
+            .detail-title { font-size: 1.5rem; }
+            .detail-price { font-size: 1.7rem; }
+            .detail-price-box { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+}
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb-bar">
+    <div class="container">
+        <div class="bc">
+            <a href="@Url.Action("Index","Home")"><i class="fas fa-house me-1"></i>Trang chủ</a>
+            <span class="sep"><i class="fas fa-chevron-right" style="font-size:0.65rem"></i></span>
+            <a href="@Url.Action("Index","Book")">Tất cả sách</a>
+            <span class="sep"><i class="fas fa-chevron-right" style="font-size:0.65rem"></i></span>
+            <a href="@Url.Action("Index","Category")">@Model.Category.CategoryName</a>
+            <span class="sep"><i class="fas fa-chevron-right" style="font-size:0.65rem"></i></span>
+            <span class="current">@Model.Title</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- MAIN DETAIL -->
+    <div class="detail-wrap">
+
+        <!-- LEFT – COVER IMAGE -->
+        <div class="detail-img-col">
+            <div class="detail-img-box">
+                <img src="@(Model.CoverImage != null && Model.CoverImage.StartsWith("/") ? Model.CoverImage : Url.Content("~/Content/images/" + Model.CoverImage))"
+                     alt="@Model.Title" />
+            </div>
+            <div class="stock-badge-wrap">
+                @if (Model.Stock > 0)
+                {
+                    <span class="stock-badge in">
+                        <i class="fas fa-circle-check"></i> Còn @Model.Stock cuốn
+                    </span>
+                }
+                else
+                {
+                    <span class="stock-badge out">
+                        <i class="fas fa-circle-xmark"></i> Hết hàng
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT – INFO -->
+        <div class="detail-info-col">
+
+            <div class="detail-category-tag">
+                <i class="fas fa-layer-group"></i>
+                @Model.Category.CategoryName
+            </div>
+
+            <h1 class="detail-title">@Model.Title</h1>
+
+            <div class="detail-meta">
+                <div class="detail-meta-row">
+                    <div class="meta-icon"><i class="fas fa-pen-nib"></i></div>
+                    <span class="meta-label">Tác giả</span>
+                    <span class="meta-value">@Model.Author.Name</span>
+                </div>
+                <div class="detail-meta-row">
+                    <div class="meta-icon"><i class="fas fa-building-columns"></i></div>
+                    <span class="meta-label">NXB</span>
+                    <span class="meta-value">@Model.Publisher.Name</span>
+                </div>
+                <div class="detail-meta-row">
+                    <div class="meta-icon"><i class="fas fa-barcode"></i></div>
+                    <span class="meta-label">Mã sách</span>
+                    <span class="meta-value">#@Model.BookID.ToString("D5")</span>
+                </div>
+            </div>
+
+            <!-- PRICE BOX -->
+            <div class="detail-price-box">
+                <div>
+                    <div class="detail-price">@string.Format("{0:N0}đ", Model.Price)</div>
+                    <div class="detail-price-note">Đã bao gồm VAT</div>
+                </div>
+                <div class="detail-price-tags">
+                    <span class="detail-tag ship"><i class="fas fa-truck-fast"></i> Miễn phí ship</span>
+                    <span class="detail-tag ret"><i class="fas fa-rotate-left"></i> Đổi trả 7 ngày</span>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            @if (Model.Stock > 0)
+            {
+                <div class="detail-actions">
+                    <button class="btn-detail-cart add-to-cart" data-id="@Model.BookID">
+                        <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                    </button>
+                    <button class="btn-detail-buy buy-now" data-id="@Model.BookID">
+                        <i class="fas fa-bolt"></i> Mua ngay
+                    </button>
+                    <button class="btn-detail-wish" title="Yêu thích">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="detail-actions">
+                    <button class="btn-disabled-stock" disabled>
+                        <i class="fas fa-ban me-2"></i> Sản phẩm tạm hết hàng
+                    </button>
+                </div>
+            }
+
+            <!-- GUARANTEE -->
+            <div class="detail-guarantee">
+                <div class="guarantee-item">
+                    <i class="fas fa-shield-halved"></i> Hàng chính hãng 100%
+                </div>
+                <div class="guarantee-item">
+                    <i class="fas fa-truck-fast"></i> Giao trong 24h
+                </div>
+                <div class="guarantee-item">
+                    <i class="fas fa-headset"></i> Hỗ trợ 24/7
+                </div>
+                <div class="guarantee-item">
+                    <i class="fas fa-lock"></i> Thanh toán bảo mật
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="desc-section">
+        <h4><i class="fas fa-file-lines"></i> Mô tả sách</h4>
+        <p>@(string.IsNullOrWhiteSpace(Model.Description) ? "Chưa có mô tả cho cuốn sách này." : Model.Description)</p>
+    </div>
+
+    <!-- RELATED BOOKS -->
+    @if (relatedBooks != null && relatedBooks.Any())
+    {
+        <div class="related-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Sách <span>cùng danh mục</span></h2>
+                    <div class="section-line"></div>
+                </div>
+                <a href="@Url.Action("Index","Book")" class="section-link">
+                    Xem tất cả <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var b in relatedBooks.Where(x => x != null))
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="related-card">
+                            <a href="@Url.Action("Details","Book", new { id = b.BookID })"
+                               class="text-decoration-none stretched-link">
+                                <img src="@(b.CoverImage != null && b.CoverImage.StartsWith("/") ? b.CoverImage : Url.Content("~/Content/images/" + b.CoverImage))"
+                                     alt="@b.Title" />
+                            </a>
+                            <div class="related-card-body">
+                                <div class="related-card-title">@b.Title</div>
+                                <div class="related-card-price">@string.Format("{0:N0}đ", b.Price)</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
+
+@section scripts {
+    <script>
+        document.querySelectorAll(".add-to-cart").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            var toastEl = document.getElementById("loginToast");
+                            new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                            setTimeout(function () {
+                                window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(window.location.pathname);
+                            }, 2000);
+                            return;
+                        }
+                        var badge = document.getElementById("cart-count");
+                        if (badge) badge.innerText = data.count;
+                        var toastEl = document.getElementById("cartToast");
+                        if (toastEl) new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                    });
+            });
+        });
+
+        document.querySelectorAll(".buy-now").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/BuyNow", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            window.location.href = "/Account/Login?returnUrl=/Cart";
+                            return;
+                        }
+                        window.location.href = "/Cart";
+                    });
+            });
+        });
+
+        // Wishlist toggle
+        var wishBtn = document.querySelector(".btn-detail-wish");
+        if (wishBtn) {
+            wishBtn.addEventListener("click", function () {
+                var icon = this.querySelector("i");
+                if (icon.classList.contains("far")) {
+                    icon.classList.replace("far", "fas");
+                    this.style.color = "#f43f5e";
+                    this.style.borderColor = "#f43f5e";
+                    this.style.background = "#fff5f5";
+                } else {
+                    icon.classList.replace("fas", "far");
+                    this.style.color = "";
+                    this.style.borderColor = "";
+                    this.style.background = "";
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,35 @@
+﻿@model Thuc_hanh_WEB.Models.Coupon
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Xóa Mã giảm giá";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-9 col-lg-7">
+        <div class="card border-danger shadow-lg">
+            <div class="card-header bg-danger text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> Xác Yêu Cầu Xóa</h4>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-4 text-danger">
+                    <i class="fas fa-ticket-alt fa-4x opacity-75"></i>
+                </div>
+                <h4 class="fw-bold mb-3 font-monospace text-uppercase">@Model.Code</h4>
+                <p class="text-muted mb-4">Bạn đang thực hiện thao tác xóa vĩnh viễn <strong>Mã giảm giá (ID: #@Model.CouponID)</strong> này ra khỏi hệ thống cơ sở dữ liệu.</p>
+                
+                <div class="alert alert-warning border-warning" role="alert">
+                    <i class="fas fa-info-circle me-1"></i> <strong>Lưu ý:</strong> Việc xóa mã giảm giá sẽ vô hiệu hóa nó ngay lập tức. Tuy nhiên, thao tác này <strong>không ảnh hưởng</strong> đến lịch sử các đơn hàng đã áp dụng mã này trước đó.
+                </div>
+
+                @using (Html.BeginForm("Delete", "Coupon", new { id = Model.CouponID }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="@Url.Action("Index")" class="btn btn-light border px-4">Quay lại (Hủy bỏ)</a>
+                        <button type="submit" class="btn btn-danger px-4 fw-bold"><i class="fas fa-trash-alt me-2"></i> Xóa vĩnh viễn</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

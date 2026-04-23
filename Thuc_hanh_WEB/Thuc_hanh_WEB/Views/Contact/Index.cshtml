@@ -1,0 +1,232 @@
+﻿@{
+    ViewBag.Title = "Liên hệ - BookStore";
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/contact.css")" rel="stylesheet" />
+}
+
+<div class="ct-page">
+
+    <!-- HERO -->
+    <section class="ct-hero">
+        <div class="container">
+            <div class="ct-hero__inner">
+                <div class="ct-hero__text">
+                    <span class="ct-hero__eyebrow">Chúng tôi luôn lắng nghe</span>
+                    <h1 class="ct-hero__title">Liên hệ<br><em>với BookStore</em></h1>
+                    <p class="ct-hero__sub">
+                        Bạn có câu hỏi về đơn hàng, sách hoặc cần tư vấn?
+                        Đội ngũ của chúng tôi sẵn sàng hỗ trợ bạn mọi lúc.
+                    </p>
+                </div>
+                <div class="ct-hero__illustration">
+                    <div class="ct-books-stack">
+                        <div class="ct-book ct-book--1"></div>
+                        <div class="ct-book ct-book--2"></div>
+                        <div class="ct-book ct-book--3"></div>
+                        <div class="ct-book ct-book--4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <section class="ct-main">
+        <div class="container">
+            <div class="ct-layout">
+
+                <!-- LEFT: FORM -->
+                <div class="ct-form-wrap">
+                    <div class="ct-form-header">
+                        <h2>Gửi tin nhắn</h2>
+                        <p>Chúng tôi sẽ phản hồi trong vòng <strong>24 giờ</strong></p>
+                    </div>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="ct-alert ct-alert--success">
+                            ✓ @TempData["Success"]
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Index", "Contact", FormMethod.Post, new { @class = "ct-form", id = "contactForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="ct-form__row">
+                            <div class="ct-field">
+                                <label class="ct-label">Họ và tên <span>*</span></label>
+                                <div class="ct-input-wrap">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" name="FullName" class="ct-input"
+                                           placeholder="Nguyễn Văn A" required />
+                                </div>
+                            </div>
+                            <div class="ct-field">
+                                <label class="ct-label">Email <span>*</span></label>
+                                <div class="ct-input-wrap">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" name="Email" class="ct-input"
+                                           placeholder="email@example.com" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ct-field">
+                            <label class="ct-label">Số điện thoại</label>
+                            <div class="ct-input-wrap">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" name="Phone" class="ct-input"
+                                       placeholder="0909 xxx xxx" />
+                            </div>
+                        </div>
+
+                        <div class="ct-field">
+                            <label class="ct-label">Chủ đề <span>*</span></label>
+                            <div class="ct-input-wrap ct-input-wrap--select">
+                                <i class="fas fa-tag"></i>
+                                <select name="Subject" class="ct-input ct-select" required>
+                                    <option value="" disabled selected>Chọn chủ đề...</option>
+                                    <option>Hỏi về đơn hàng</option>
+                                    <option>Tư vấn sách</option>
+                                    <option>Hợp tác xuất bản</option>
+                                    <option>Báo lỗi / Phản hồi</option>
+                                    <option>Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ct-field">
+                            <label class="ct-label">Nội dung tin nhắn <span>*</span></label>
+                            <textarea name="Message" class="ct-textarea"
+                                      placeholder="Nhập nội dung tin nhắn của bạn..."
+                                      rows="5" required></textarea>
+                        </div>
+
+                        <button type="submit" class="ct-submit" id="submitBtn">
+                            <span class="ct-submit__text">
+                                <i class="fas fa-paper-plane"></i>
+                                Gửi tin nhắn
+                            </span>
+                        </button>
+                    }
+                </div>
+
+                <!-- RIGHT: INFO -->
+                <div class="ct-info">
+
+                    <!-- Info cards -->
+                    <div class="ct-info-cards">
+                        <div class="ct-info-card" style="--d:.05s">
+                            <div class="ct-info-card__icon">📍</div>
+                            <div>
+                                <h4>Địa chỉ</h4>
+                                <p>123 Đường Sách, Quận 1<br>TP. Hồ Chí Minh, Việt Nam</p>
+                            </div>
+                        </div>
+                        <div class="ct-info-card" style="--d:.12s">
+                            <div class="ct-info-card__icon">📞</div>
+                            <div>
+                                <h4>Điện thoại</h4>
+                                <p>
+                                    <a href="tel:02812345678">(028) 1234 5678</a><br>
+                                    <a href="tel:0909000000">0909 000 000</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ct-info-card" style="--d:.19s">
+                            <div class="ct-info-card__icon">✉️</div>
+                            <div>
+                                <h4>Email</h4>
+                                <p>
+                                    <a href="mailto:support@bookstore.vn">support@bookstore.vn</a><br>
+                                    <a href="mailto:info@bookstore.vn">info@bookstore.vn</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ct-info-card" style="--d:.26s">
+                            <div class="ct-info-card__icon">🕐</div>
+                            <div>
+                                <h4>Giờ làm việc</h4>
+                                <p>
+                                    Thứ 2 – Thứ 6: 8:00 – 22:00<br>
+                                    Thứ 7 – CN: 9:00 – 21:00
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social links -->
+                    <div class="ct-social">
+                        <p class="ct-social__label">Theo dõi chúng tôi</p>
+                        <div class="ct-social__links">
+                            <a href="#" class="ct-social__btn ct-social__btn--fb" title="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="ct-social__btn ct-social__btn--ig" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="ct-social__btn ct-social__btn--yt" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="#" class="ct-social__btn ct-social__btn--tk" title="TikTok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Map placeholder -->
+                    <div class="ct-map">
+                        <div class="ct-map__inner">
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4677937671167!2d106.7016815!3d10.7716941!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317527eae66dda09%3A0x4b1b2b2b2b2b2b2b!2zVGjDoG5oIHBo4buRIEjhu5MgQ2jDrSBNaW5o!5e0!3m2!1svi!2svn!4v1234567890"
+                                    allowfullscreen="" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                            <div class="ct-map__overlay">
+                                <span>📍 BookStore — Quận 1, TP.HCM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ STRIP -->
+    <section class="ct-faq">
+        <div class="container">
+            <h2 class="ct-faq__title">Câu hỏi thường gặp</h2>
+            <div class="ct-faq__grid">
+                <div class="ct-faq__item">
+                    <h4>📦 Bao lâu thì nhận được sách?</h4>
+                    <p>Đơn hàng nội thành TP.HCM giao trong 1–2 ngày. Tỉnh thành khác từ 2–5 ngày làm việc.</p>
+                </div>
+                <div class="ct-faq__item">
+                    <h4>🔄 Có thể đổi trả sách không?</h4>
+                    <p>Được đổi trả trong vòng 7 ngày nếu sách bị lỗi in hoặc nhầm đầu sách.</p>
+                </div>
+                <div class="ct-faq__item">
+                    <h4>💳 Những hình thức thanh toán nào?</h4>
+                    <p>Chúng tôi hỗ trợ COD, chuyển khoản ngân hàng, Momo, ZaloPay và thẻ tín dụng.</p>
+                </div>
+                <div class="ct-faq__item">
+                    <h4>🎁 Có giao hàng toàn quốc không?</h4>
+                    <p>Có! Chúng tôi giao hàng đến tất cả 63 tỉnh thành trên toàn quốc.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+@section scripts {
+    <script>
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.querySelector('.ct-submit__text').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+});
+    </script>
+}

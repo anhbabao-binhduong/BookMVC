@@ -1,0 +1,227 @@
+﻿@model IEnumerable<Thuc_hanh_WEB.Models.Book>
+
+@{
+    ViewBag.Title = "Tất cả sách - BookStore";
+}
+
+@section head {
+    <link href="~/Content/css/home.css" rel="stylesheet" />
+    <style>
+        .book-index-hero {
+            background: linear-gradient(130deg, #1a1510 0%, #2d2416 60%, #3d3020 100%);
+            padding: 48px 0 52px;
+            margin-bottom: 52px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .book-index-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse 50% 100% at 90% 50%, rgba(255,107,53,0.14) 0%, transparent 70%);
+                pointer-events: none;
+            }
+
+            .book-index-hero .hero-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(255,107,53,0.18);
+                border: 1px solid rgba(255,107,53,0.35);
+                border-radius: 999px;
+                padding: 5px 16px;
+                font-size: 0.78rem;
+                font-weight: 700;
+                color: #ffd166;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                margin-bottom: 16px;
+            }
+
+            .book-index-hero h1 {
+                font-family: 'Playfair Display', serif;
+                font-size: 2.2rem;
+                font-weight: 800;
+                color: #fff;
+                margin-bottom: 8px;
+            }
+
+                .book-index-hero h1 span {
+                    color: #ff6b35;
+                    font-style: italic;
+                }
+
+            .book-index-hero p {
+                color: rgba(255,255,255,0.55);
+                font-size: 0.95rem;
+                margin: 0;
+            }
+
+        .count-pill {
+            background: var(--primary-l);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 999px;
+            border: 1px solid #ffd0bc;
+        }
+
+        /* Category section header */
+        .cat-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 52px;
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .cat-section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cat-section-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #ff6b35, #e8521c);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+        }
+
+        .cat-section-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+    </style>
+}
+
+<!-- HERO -->
+<div class="book-index-hero">
+    <div class="container">
+        <div class="hero-label">
+            <i class="fas fa-book-open"></i> Thư viện sách
+        </div>
+        <h1>Tất cả <span>đầu sách</span></h1>
+        <p>Khám phá bộ sưu tập @Model.Count() đầu sách công nghệ được chọn lọc kỹ càng</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: 60px;">
+
+    @foreach (var group in Model.GroupBy(b => b.Category))
+    {
+        <!-- CATEGORY HEADER -->
+        <div class="cat-section-head">
+            <div class="cat-section-title">
+                <div class="cat-section-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h4 class="cat-section-name">@group.Key.CategoryName</h4>
+            </div>
+            <span class="count-pill">@group.Count() sách</span>
+        </div>
+
+        <!-- BOOK GRID -->
+        <div class="row g-3">
+            @foreach (var book in group)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="book-card">
+
+                        <a href="@Url.Action("Details","Book", new { id = book.BookID })"
+                           class="text-decoration-none">
+                            <div class="book-card-img-wrap">
+                                <img src="@(book.CoverImage != null && book.CoverImage.StartsWith("/") ? book.CoverImage : Url.Content("~/Content/images/" + book.CoverImage))"
+                                     alt="@book.Title" />
+                            </div>
+                        </a>
+
+                        <div class="book-card-body">
+                            <div class="book-card-title">@book.Title</div>
+                            <div class="book-card-author">
+                                <i class="fas fa-pen-nib"></i>@book.Author.Name
+                            </div>
+                            <div class="book-card-price">
+                                @string.Format("{0:N0}đ", book.Price)
+                            </div>
+                        </div>
+
+                        <div class="book-card-footer">
+                            <button class="btn-add-cart add-to-cart" data-id="@book.BookID">
+                                <i class="fas fa-cart-plus"></i> Giỏ hàng
+                            </button>
+                            <button class="btn-buy-now buy-now" data-id="@book.BookID">
+                                <i class="fas fa-bolt"></i> Mua ngay
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+@section scripts {
+    <script>
+        document.querySelectorAll(".add-to-cart").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            var toastEl = document.getElementById("loginToast");
+                            new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                            setTimeout(() => {
+                                var returnUrl = window.location.pathname + window.location.search;
+                                window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(returnUrl);
+                            }, 2000);
+                            return;
+                        }
+                        var badge = document.getElementById("cart-count");
+                        if (badge) badge.innerText = data.count;
+                        var toastEl = document.getElementById("cartToast");
+                        if (toastEl) new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                    });
+            });
+        });
+
+        document.querySelectorAll(".buy-now").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/BuyNow", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+                        window.location.href = "/Cart";
+                    });
+            });
+        });
+    </script>
+}

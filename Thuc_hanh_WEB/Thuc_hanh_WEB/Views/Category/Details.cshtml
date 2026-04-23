@@ -1,0 +1,162 @@
+﻿@model Thuc_hanh_WEB.Models.Category
+
+@{
+    ViewBag.Title = Model.CategoryName + " - BookStore";
+    int bookCount = Model.Books != null ? Model.Books.Count() : 0;
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/category-details.css")" rel="stylesheet" />
+}
+
+<div class="cd-page">
+
+    <!-- BREADCRUMB + HEADER -->
+    <section class="cd-header">
+        <div class="container">
+            <nav class="cd-breadcrumb">
+                <a href="@Url.Action("Index","Home")">Trang chủ</a>
+                <span>/</span>
+                <a href="@Url.Action("Index","Category")">Danh mục</a>
+                <span>/</span>
+                <em>@Model.CategoryName</em>
+            </nav>
+
+            <div class="cd-header__inner">
+                <div class="cd-header__text">
+                    <h1 class="cd-header__title">@Model.CategoryName</h1>
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="cd-header__desc">@Model.Description</p>
+                    }
+                </div>
+                <div class="cd-header__badge">
+                    <span class="cd-badge">@bookCount</span>
+                    <span class="cd-badge__label">Đầu sách</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER TAPE -->
+    <div class="cd-tape"></div>
+
+    <!-- BOOK GRID -->
+    <section class="cd-books">
+        <div class="container">
+
+            @if (Model.Books == null || !Model.Books.Any())
+            {
+                <div class="cd-empty">
+                    <span>📭</span>
+                    <p>Chưa có sách trong danh mục này</p>
+                </div>
+            }
+            else
+            {
+                <div class="cd-grid">
+                    @{ int idx = 0; }
+                    @foreach (var book in Model.Books)
+                    {
+                        idx++;
+                        <div class="cd-card" style="--i: @idx">
+
+                            <!-- COVER -->
+                            <a href="@Url.Action("Details","Book", new { id = book.BookID })"
+                               class="cd-card__cover-link">
+                                <div class="cd-card__cover">
+                                    <img src="@(book.CoverImage != null && book.CoverImage.StartsWith("/") ? book.CoverImage : Url.Content("~/Content/images/" + book.CoverImage))"
+                                         alt="@book.Title" />
+                                    <div class="cd-card__overlay">
+                                        <span class="cd-card__quick">Xem chi tiết →</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- INFO -->
+                            <div class="cd-card__info">
+                                <a href="@Url.Action("Details","Book", new { id = book.BookID })"
+                                   class="cd-card__title">@book.Title</a>
+                                <p class="cd-card__author">@book.Author.Name</p>
+                                <p class="cd-card__price">@string.Format("{0:N0}đ", book.Price)</p>
+                            </div>
+
+                            <!-- ACTIONS -->
+                            <div class="cd-card__actions">
+                                <button class="cd-btn cd-btn--outline add-to-cart"
+                                        data-id="@book.BookID" title="Thêm vào giỏ">
+                                    <i class="fas fa-cart-plus"></i>
+                                    <span>Giỏ hàng</span>
+                                </button>
+                                <button class="cd-btn cd-btn--solid buy-now"
+                                        data-id="@book.BookID" title="Mua ngay">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Mua ngay</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- BACK BUTTON -->
+            <div class="cd-back">
+                <a href="@Url.Action("Index","Category")" class="cd-back__btn">
+                    ← Quay lại danh mục
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+
+@section scripts {
+    <script>
+        document.querySelectorAll(".add-to-cart").forEach(btn => {
+            btn.addEventListener("click", function () {
+                let bookId = this.dataset.id;
+                fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            let toastEl = document.getElementById("loginToast");
+                            if (toastEl) new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                            let returnUrl = window.location.pathname + window.location.search;
+                            setTimeout(() => { window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(returnUrl); }, 2000);
+                            return;
+                        }
+                        let badge = document.getElementById("cart-count");
+                        if (badge) badge.innerText = data.count;
+                        let toastEl = document.getElementById("cartToast");
+                        if (toastEl) new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                    });
+            });
+        });
+
+        document.querySelectorAll(".buy-now").forEach(btn => {
+            btn.addEventListener("click", function () {
+                let bookId = this.dataset.id;
+                fetch("/Cart/BuyNow", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            let returnUrl = window.location.pathname;
+                            window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(returnUrl);
+                            return;
+                        }
+                        window.location.href = "/Cart";
+                    });
+            });
+        });
+    </script>
+}

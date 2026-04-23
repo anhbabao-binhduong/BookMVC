@@ -1,0 +1,145 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công - BookStore";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int orderId = ViewBag.OrderID != null ? (int)ViewBag.OrderID : 0;
+    decimal total = ViewBag.Total != null ? (decimal)ViewBag.Total : 0m;
+    string paymentMethod = ViewBag.PaymentMethod as string ?? "COD";
+    string fullName = ViewBag.FullName as string ?? "";
+    string orderCode = orderId.ToString().PadLeft(6, '0');
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/order-success.css")" rel="stylesheet" />
+}
+
+<div class="os-page">
+
+    <div class="os-confetti" id="confetti"></div>
+
+    <div class="os-wrap">
+
+        <!-- STEPS -->
+        <div class="os-steps">
+            <div class="os-step done">
+                <div class="os-step__num">✓</div>
+                <span>Giỏ hàng</span>
+            </div>
+            <div class="os-step__arrow"></div>
+            <div class="os-step done">
+                <div class="os-step__num">✓</div>
+                <span>Thanh toán</span>
+            </div>
+            <div class="os-step__arrow"></div>
+            <div class="os-step done">
+                <div class="os-step__num">✓</div>
+                <span>Xác nhận</span>
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="os-card">
+            <div class="os-card-body">
+
+                <div class="os-icon-wrap">🎉</div>
+
+                <h1 class="os-title">Đặt hàng thành công!</h1>
+                <p class="os-subtitle">
+                    Cảm ơn <strong>@fullName</strong>, đơn hàng của bạn đã được tiếp nhận.<br />
+                    Chúng tôi sẽ xử lý và giao sách sớm nhất có thể.
+                </p>
+
+                <!-- THÔNG TIN ĐƠN HÀNG -->
+                <div class="os-info-box">
+                    <div class="os-info-row">
+                        <span class="os-info-label">Mã đơn hàng</span>
+                        <span class="os-info-val accent">#@orderCode</span>
+                    </div>
+                    <div class="os-info-row">
+                        <span class="os-info-label">Ngày đặt</span>
+                        <span class="os-info-val">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="os-info-row">
+                        <span class="os-info-label">Phương thức thanh toán</span>
+                        <span class="os-info-val">
+                            @if (paymentMethod == "COD")
+                            {
+                                <span class="os-pay-badge os-pay-cod">🚚 COD</span>
+                            }
+                            else if (paymentMethod == "BankTransfer")
+                            {
+                                <span class="os-pay-badge os-pay-bank">🏦 Chuyển khoản</span>
+                            }
+                            else if (paymentMethod == "VNPAY")
+                            {
+                                <span class="os-pay-badge os-pay-vnpay">💜 VNPAY</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="os-info-row">
+                        <span class="os-info-label">Tổng thanh toán</span>
+                        <span class="os-info-val grand">@string.Format("{0:N0}đ", total)</span>
+                    </div>
+                </div>
+
+                @* Hướng dẫn chuyển khoản *@
+                @if (paymentMethod == "BankTransfer")
+                {
+                    <div class="os-bank-box">
+                        <div class="os-bank-title">🏦 Thông tin chuyển khoản</div>
+                        <strong>Ngân hàng:</strong> Vietcombank<br />
+                        <strong>Số TK:</strong> 1234 5678 9012<br />
+                        <strong>Chủ TK:</strong> BOOKSTORE VIET NAM<br />
+                        <strong>Số tiền:</strong> @string.Format("{0:N0}đ", total)<br />
+                        <strong>Nội dung CK:</strong> DH@(orderCode) @fullName
+                        <small class="os-bank-warn">
+                            ⚠ Vui lòng chuyển khoản trong vòng 24h, đơn hàng sẽ bị hủy nếu quá hạn.
+                        </small>
+                    </div>
+                }
+
+                <!-- ACTIONS -->
+                <div class="os-actions">
+                    <a href="@Url.Action("MyOrders", "Order")" class="os-btn os-btn-ghost">
+                        📋 Đơn hàng của tôi
+                    </a>
+                    <a href="@Url.Action("Index", "Home")" class="os-btn os-btn-primary">
+                        📚 Tiếp tục mua sắm
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var colors = ['#c8a96e', '#8b4513', '#4a7c59', '#b8952a', '#e8d5b7', '#f5ede4'];
+            var container = document.getElementById('confetti');
+            for (var i = 0; i < 60; i++) {
+                (function (i) {
+                    setTimeout(function () {
+                        var dot = document.createElement('div');
+                        dot.className = 'os-dot';
+                        var size = Math.random() * 10 + 5;
+                        var isCircle = Math.random() > 0.5;
+                        dot.style.cssText = [
+                            'width:' + size + 'px',
+                            'height:' + size + 'px',
+                            'left:' + Math.random() * 100 + '%',
+                            'top:-20px',
+                            'background:' + colors[Math.floor(Math.random() * colors.length)],
+                            'animation-duration:' + (Math.random() * 2 + 1.5) + 's',
+                            'animation-delay:0s',
+                            'border-radius:' + (isCircle ? '50%' : '3px')
+                        ].join(';');
+                        container.appendChild(dot);
+                        setTimeout(function () { dot.remove(); }, 4000);
+                    }, i * 60);
+                })(i);
+            }
+        })();
+    </script>
+}

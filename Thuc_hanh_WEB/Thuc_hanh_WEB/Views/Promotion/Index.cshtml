@@ -1,0 +1,291 @@
+﻿@{
+    ViewBag.Title = "Khuyến mãi - BookStore";
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/promotion.css")" rel="stylesheet" />
+}
+
+<div class="pr-page">
+
+    <!-- HERO BANNER -->
+    <section class="pr-hero">
+        <div class="pr-hero__confetti">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="container">
+            <div class="pr-hero__inner">
+                <div class="pr-hero__tag">🔥 Hot Deals</div>
+                <h1 class="pr-hero__title">
+                    Ưu đãi<br><em>Không Thể Bỏ Lỡ</em>
+                </h1>
+                <p class="pr-hero__sub">
+                    Hàng trăm đầu sách giảm giá sâu — chỉ trong thời gian có hạn.<br>
+                    Đặt hàng ngay hôm nay để không bỏ lỡ ưu đãi tốt nhất!
+                </p>
+                <div class="pr-hero__countdown">
+                    <div class="pr-countdown-label">Kết thúc sau:</div>
+                    <div class="pr-countdown">
+                        <div class="pr-cd-block">
+                            <span id="cd-hours">00</span>
+                            <em>Giờ</em>
+                        </div>
+                        <div class="pr-cd-sep">:</div>
+                        <div class="pr-cd-block">
+                            <span id="cd-mins">00</span>
+                            <em>Phút</em>
+                        </div>
+                        <div class="pr-cd-sep">:</div>
+                        <div class="pr-cd-block">
+                            <span id="cd-secs">00</span>
+                            <em>Giây</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROMO STATS BAR -->
+    <div class="pr-stats-bar">
+        <div class="container">
+            <div class="pr-stats">
+                <div class="pr-stat">
+                    <span class="pr-stat__num">500+</span>
+                    <span class="pr-stat__label">Đầu sách KM</span>
+                </div>
+                <div class="pr-stat__div"></div>
+                <div class="pr-stat">
+                    <span class="pr-stat__num">Đến 60%</span>
+                    <span class="pr-stat__label">Giảm giá</span>
+                </div>
+                <div class="pr-stat__div"></div>
+                <div class="pr-stat">
+                    <span class="pr-stat__num">Free</span>
+                    <span class="pr-stat__label">Ship đơn &gt;199k</span>
+                </div>
+                <div class="pr-stat__div"></div>
+                <div class="pr-stat">
+                    <span class="pr-stat__num">24/7</span>
+                    <span class="pr-stat__label">Hỗ trợ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROMO CARDS -->
+    <section class="pr-section">
+        <div class="container">
+            <div class="pr-section__head">
+                <h2 class="pr-section__title">Chương trình khuyến mãi</h2>
+                <div class="pr-section__line"></div>
+            </div>
+
+            <div class="pr-grid">
+
+                <!-- CARD 1 -->
+                <div class="pr-card pr-card--red" style="--delay:.08s">
+                    <div class="pr-card__ribbon">HOT</div>
+                    <div class="pr-card__icon">📚</div>
+                    <div class="pr-card__badge">Giảm 40%</div>
+                    <h3 class="pr-card__title">Flash Sale Cuối Tuần</h3>
+                    <p class="pr-card__desc">
+                        Toàn bộ sách văn học và tiểu thuyết giảm giá sốc mỗi cuối tuần.
+                        Cập nhật lúc 8:00 sáng thứ Bảy hàng tuần.
+                    </p>
+                    <div class="pr-card__meta">
+                        <span class="pr-card__date">📅 Mỗi cuối tuần</span>
+                        <span class="pr-card__code">CODE: <strong>WEEKEND40</strong></span>
+                    </div>
+                    <a href="@Url.Action("Index","Category")" class="pr-card__btn">Mua ngay →</a>
+                </div>
+
+                <!-- CARD 2 -->
+                <div class="pr-card pr-card--amber" style="--delay:.16s">
+                    <div class="pr-card__icon">🎓</div>
+                    <div class="pr-card__badge">Giảm 30%</div>
+                    <h3 class="pr-card__title">Sách Học Thuật & Giáo Khoa</h3>
+                    <p class="pr-card__desc">
+                        Chuẩn bị cho năm học mới với ưu đãi hấp dẫn trên toàn bộ danh mục
+                        sách giáo khoa và tài liệu tham khảo.
+                    </p>
+                    <div class="pr-card__meta">
+                        <span class="pr-card__date">📅 Đến 31/08/2025</span>
+                        <span class="pr-card__code">CODE: <strong>STUDY30</strong></span>
+                    </div>
+                    <a href="@Url.Action("Index","Category")" class="pr-card__btn">Mua ngay →</a>
+                </div>
+
+                <!-- CARD 3 -->
+                <div class="pr-card pr-card--green" style="--delay:.24s">
+                    <div class="pr-card__icon">🌟</div>
+                    <div class="pr-card__badge">Mua 2 tặng 1</div>
+                    <h3 class="pr-card__title">Combo Tiết Kiệm</h3>
+                    <p class="pr-card__desc">
+                        Mua 2 cuốn sách bất kỳ cùng danh mục, nhận ngay 1 cuốn miễn phí
+                        có giá trị thấp nhất trong đơn hàng.
+                    </p>
+                    <div class="pr-card__meta">
+                        <span class="pr-card__date">📅 Không thời hạn</span>
+                        <span class="pr-card__code">Tự động áp dụng</span>
+                    </div>
+                    <a href="@Url.Action("Index","Category")" class="pr-card__btn">Mua ngay →</a>
+                </div>
+
+                <!-- CARD 4 -->
+                <div class="pr-card pr-card--blue" style="--delay:.32s">
+                    <div class="pr-card__icon">💌</div>
+                    <div class="pr-card__badge">Thành viên</div>
+                    <h3 class="pr-card__title">Ưu Đãi Thành Viên VIP</h3>
+                    <p class="pr-card__desc">
+                        Đăng ký tài khoản và tích điểm với mỗi đơn hàng. Đổi điểm lấy
+                        phiếu giảm giá hoặc quà tặng đặc biệt từ BookStore.
+                    </p>
+                    <div class="pr-card__meta">
+                        <span class="pr-card__date">📅 Chương trình thường xuyên</span>
+                        <span class="pr-card__code">Đăng nhập để xem</span>
+                    </div>
+                    <a href="@Url.Action("Register","Account")" class="pr-card__btn">Đăng ký →</a>
+                </div>
+
+                <!-- CARD 5 -->
+                <div class="pr-card pr-card--purple" style="--delay:.4s">
+                    <div class="pr-card__ribbon">MỚI</div>
+                    <div class="pr-card__icon">🎁</div>
+                    <div class="pr-card__badge">Giảm 50%</div>
+                    <h3 class="pr-card__title">Sách Mới Ra Mắt</h3>
+                    <p class="pr-card__desc">
+                        50% cho đơn hàng đầu tiên với sách mới ra mắt trong tháng.
+                        Cơ hội hiếm có để sở hữu sách mới với giá ưu đãi nhất.
+                    </p>
+                    <div class="pr-card__meta">
+                        <span class="pr-card__date">📅 Áp dụng đơn đầu tiên</span>
+                        <span class="pr-card__code">CODE: <strong>NEWBOOK50</strong></span>
+                    </div>
+                    <a href="@Url.Action("Index","Category")" class="pr-card__btn">Khám phá →</a>
+                </div>
+
+                <!-- CARD 6 - Newsletter -->
+                <div class="pr-card pr-card--dark" style="--delay:.48s">
+                    <div class="pr-card__icon">📬</div>
+                    <div class="pr-card__badge">Đặc quyền</div>
+                    <h3 class="pr-card__title">Nhận Ưu Đãi Qua Email</h3>
+                    <p class="pr-card__desc">
+                        Đăng ký nhận bản tin để nhận mã giảm giá độc quyền và thông báo
+                        khuyến mãi sớm nhất trước mọi người.
+                    </p>
+                    <div class="pr-newsletter">
+                        <input type="email" placeholder="Email của bạn..." class="pr-newsletter__input" />
+                        <button class="pr-newsletter__btn">Đăng ký</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- COUPON SECTION -->
+    <section class="pr-coupon-section">
+        <div class="container">
+            <h2 class="pr-section__title" style="text-align:center;margin-bottom:40px">Mã giảm giá hôm nay</h2>
+            <div class="pr-coupons">
+                <div class="pr-coupon" style="--delay:.05s">
+                    <div class="pr-coupon__left">
+                        <span class="pr-coupon__pct">40%</span>
+                        <span class="pr-coupon__off">OFF</span>
+                    </div>
+                    <div class="pr-coupon__right">
+                        <p class="pr-coupon__name">Flash Sale Cuối Tuần</p>
+                        <p class="pr-coupon__cond">Đơn tối thiểu 150.000đ • Sách văn học</p>
+                        <div class="pr-coupon__code" onclick="copyCode(this)">
+                            <span>WEEKEND40</span>
+                            <button>Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="pr-coupon" style="--delay:.1s">
+                    <div class="pr-coupon__left pr-coupon__left--amber">
+                        <span class="pr-coupon__pct">30%</span>
+                        <span class="pr-coupon__off">OFF</span>
+                    </div>
+                    <div class="pr-coupon__right">
+                        <p class="pr-coupon__name">Sách Học Thuật</p>
+                        <p class="pr-coupon__cond">Đơn tối thiểu 200.000đ • Toàn danh mục</p>
+                        <div class="pr-coupon__code" onclick="copyCode(this)">
+                            <span>STUDY30</span>
+                            <button>Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="pr-coupon" style="--delay:.15s">
+                    <div class="pr-coupon__left pr-coupon__left--purple">
+                        <span class="pr-coupon__pct">50%</span>
+                        <span class="pr-coupon__off">OFF</span>
+                    </div>
+                    <div class="pr-coupon__right">
+                        <p class="pr-coupon__name">Sách Mới Ra Mắt</p>
+                        <p class="pr-coupon__cond">Chỉ áp dụng đơn hàng đầu tiên</p>
+                        <div class="pr-coupon__code" onclick="copyCode(this)">
+                            <span>NEWBOOK50</span>
+                            <button>Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+@section scripts {
+    <script>
+        // Countdown — đếm ngược đến 23:59 hôm nay
+        function updateCountdown() {
+            var now = new Date();
+            var end = new Date(now);
+            end.setHours(23, 59, 59, 0);
+            var diff = Math.max(0, Math.floor((end - now) / 1000));
+            var h = Math.floor(diff / 3600);
+            var m = Math.floor((diff % 3600) / 60);
+            var s = diff % 60;
+            document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
+            document.getElementById('cd-mins').textContent = String(m).padStart(2, '0');
+            document.getElementById('cd-secs').textContent = String(s).padStart(2, '0');
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Sao chép mã VÀ gán vào ô input giỏ hàng nếu đang ở /Cart
+        function copyCode(el) {
+            var code = el.querySelector('span').textContent;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(code).then(function () {
+                var btn = el.querySelector('button');
+                btn.textContent = '✓ Đã sao chép';
+                btn.style.background = '#2d6a4f';
+                setTimeout(function () {
+                    btn.textContent = 'Sao chép';
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Nút "Mua ngay" trên card khuyến mãi → chuyển đến Cart kèm ?code=xxx
+        document.querySelectorAll('.pr-card__btn').forEach(function (btn) {
+            var card = btn.closest('.pr-card');
+            if (!card) return;
+            var codeEl = card.querySelector('.pr-card__code strong');
+            if (!codeEl) return;
+
+            var originalHref = btn.getAttribute('href');
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var code = codeEl.textContent.trim();
+                // Redirect về giỏ hàng kèm mã
+                window.location.href = '/Cart?code=' + encodeURIComponent(code);
+            });
+        });
+    </script>
+}

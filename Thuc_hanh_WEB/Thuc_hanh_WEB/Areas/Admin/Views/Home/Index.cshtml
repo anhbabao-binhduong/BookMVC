@@ -1,0 +1,41 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Dashboard";
+}
+<div class="container-fluid">
+    <h2><i class="fas fa-chart-line"></i> Tổng quan</h2>
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">📚 Sách</div>
+                <div class="card-body">
+                    <h3 class="card-title">@ViewBag.TotalBooks</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">👥 Người dùng</div>
+                <div class="card-body">
+                    <h3 class="card-title">@ViewBag.TotalUsers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">🛒 Đơn hàng</div>
+                <div class="card-body">
+                    <h3 class="card-title">@ViewBag.TotalOrders</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">💰 Doanh thu</div>
+                <div class="card-body">
+                    <h3 class="card-title">@String.Format("{0:N0} VNĐ", ViewBag.TotalRevenue)</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

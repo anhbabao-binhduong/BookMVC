@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+@using Thuc_hanh_WEB.Models
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - BookStore</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="~/Content/css/search.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Layout CSS -->
+    <link href="~/Content/css/layout.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @RenderSection("styles", false)
+    @RenderSection("head", required: false)
+</head>
+<body>
+
+    <!-- ===================================================
+         NAVBAR
+         =================================================== -->
+    <nav class="main-navbar">
+        <div class="container h-100 d-flex align-items-center justify-content-between gap-3">
+
+            <!-- LOGO -->
+            <a class="nav-brand" href="/">
+                <div class="nav-brand-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="nav-brand-text">
+                    BookStore
+                    <em>Kho sách công nghệ</em>
+                </div>
+            </a>
+
+            <!-- MOBILE TOGGLER -->
+            <button class="nav-toggler" onclick="toggleNav()" id="navToggler">
+                <i class="fas fa-bars" id="navTogglerIcon"></i>
+            </button>
+
+            <!-- COLLAPSIBLE AREA -->
+            <div class="nav-collapse d-lg-flex flex-lg-row align-items-center gap-3 flex-grow-1" id="navCollapse">
+
+                <!-- MENU LINKS -->
+                <ul class="main-nav-links mx-auto">
+                    <li class="nav-item">
+                        <a href="/" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                            <i class="fas fa-house"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Category" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+                            <i class="fas fa-layer-group"></i> Danh mục
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Promotion" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Promotion" ? "active" : "")">
+                            <i class="fas fa-tag"></i> Khuyến mãi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Contact" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")">
+                            <i class="fas fa-headset"></i> Liên hệ
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- SEARCH -->
+                <div class="nav-search">
+                    <input id="searchBox" type="search" placeholder="Tìm tên sách, tác giả..." autocomplete="off" />
+                    <button type="button">
+                        <i class="fas fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <!-- ICONS (USER + CART) -->
+                <ul class="nav-icons">
+
+                    <!-- USER -->
+                    <li>
+                        @if (Session["UserID"] == null)
+                        {
+                            <a href="@Url.Action("Login","Account")" class="nav-icon-btn" title="Đăng nhập">
+                                <i class="fas fa-user"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="nav-dropdown">
+                                <a href="javascript:void(0);" class="nav-icon-btn user-active" title="Tài khoản">
+                                    <i class="fas fa-circle-user"></i>
+                                </a>
+                                <div class="nav-dropdown-menu">
+                                    <div class="nav-dropdown-header">
+                                        <strong>@Session["FullName"]</strong>
+                                        <span>@Session["Role"]</span>
+                                    </div>
+                                    <a href="@Url.Action("Profile","Account")" class="nav-dropdown-item">
+                                        <i class="fas fa-user-pen"></i> Thông tin cá nhân
+                                    </a>
+                                    <a href="@Url.Action("MyOrders","Order")" class="nav-dropdown-item">
+                                        <i class="fas fa-bag-shopping"></i> Đơn hàng của tôi
+                                    </a>
+                                    @if (Session["Role"]?.ToString() == "Admin")
+                                    {
+                                        <a href="/Admin" class="nav-dropdown-item">
+                                            <i class="fas fa-gauge-high"></i> Quản trị
+                                        </a>
+                                    }
+                                    <hr class="nav-dropdown-divider" />
+                                    <a href="@Url.Action("Logout","Account")" class="nav-dropdown-item danger">
+                                        <i class="fas fa-right-from-bracket"></i> Đăng xuất
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </li>
+
+                    <!-- CART -->
+                    <li>
+                        @{
+                            int cartCount = 0;
+                            if (Session["UserID"] != null)
+                            {
+                                var db = new BookStoreDBContext();
+                                int userId = (int)Session["UserID"];
+                                cartCount = db.ShoppingCarts
+                                              .Where(c => c.UserID == userId)
+                                              .Sum(c => (int?)c.Quantity) ?? 0;
+                            }
+                        }
+                        <a href="/Cart" class="nav-icon-btn" title="Giỏ hàng">
+                            <i class="fas fa-cart-shopping"></i>
+                            <span id="cart-count" class="cart-badge">@cartCount</span>
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- SEARCH RESULT – nằm ngoài navbar, JS định vị bằng fixed positioning -->
+    
+
+
+    <!-- ===================================================
+         BODY
+         =================================================== -->
+    <div class="page-body">
+        @RenderBody()
+    </div>
+
+
+    <!-- ===================================================
+         FOOTER
+         =================================================== -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row g-4">
+
+                <!-- BRAND -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <div class="footer-brand-name">
+                            <div class="footer-brand-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            BookStore
+                        </div>
+                        <p class="footer-desc">
+                            Nền tảng mua sách công nghệ trực tuyến hàng đầu Việt Nam.
+                            Hơn 5,000 đầu sách chọn lọc, giao hàng siêu tốc 24h.
+                        </p>
+                        <div class="footer-socials">
+                            <a href="#" class="footer-social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="footer-social-btn" title="Youtube"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="footer-social-btn" title="Tiktok"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="footer-social-btn" title="Zalo"><i class="fas fa-comment-dots"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK LINKS -->
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <div class="footer-heading">Liên kết</div>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="fas fa-chevron-right"></i> Trang chủ</a></li>
+                        <li><a href="/Book"><i class="fas fa-chevron-right"></i> Tất cả sách</a></li>
+                        <li><a href="/Category"><i class="fas fa-chevron-right"></i> Danh mục</a></li>
+                        <li><a href="/Promotion"><i class="fas fa-chevron-right"></i> Khuyến mãi</a></li>
+                        <li><a href="/Home/About"><i class="fas fa-chevron-right"></i> Giới thiệu</a></li>
+                    </ul>
+                </div>
+
+                <!-- POLICY -->
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <div class="footer-heading">Chính sách</div>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Điều khoản</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Bảo mật</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Vận chuyển</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Đổi trả hàng</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Hỗ trợ</a></li>
+                    </ul>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-heading">Liên hệ</div>
+                    <ul class="footer-contact list-unstyled">
+                        <li>
+                            <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                            <span>123 Đường Sách, Quận 1, TP. Hồ Chí Minh</span>
+                        </li>
+                        <li>
+                            <span class="icon"><i class="fas fa-envelope"></i></span>
+                            <span>support@bookstore.vn</span>
+                        </li>
+                        <li>
+                            <span class="icon"><i class="fas fa-phone"></i></span>
+                            <span>+84 123 456 789</span>
+                        </li>
+                        <li>
+                            <span class="icon"><i class="fas fa-clock"></i></span>
+                            <span>Thứ 2 – Thứ 7: 8:00 – 21:00</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- BOTTOM BAR -->
+            <div class="footer-bottom">
+                <div class="footer-copy">
+                    © 2026 <span>BookStore</span>. All rights reserved. Made with
+                    <i class="fas fa-heart text-danger ms-1 me-1"></i> in Vietnam.
+                </div>
+                <div class="footer-badges">
+                    <div class="footer-badge"><i class="fas fa-shield-halved"></i> SSL Secured</div>
+                    <div class="footer-badge"><i class="fas fa-truck-fast"></i> Ship 24h</div>
+                    <div class="footer-badge"><i class="fas fa-rotate-left"></i> Đổi trả 7 ngày</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- TOAST ADD TO CART -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="cartToast" class="toast toast-custom text-bg-success border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i> Đã thêm vào giỏ hàng!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST YÊU CẦU ĐĂNG NHẬP -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="bottom: 70px!important">
+        <div id="loginToast" class="toast toast-custom border-0" role="alert"
+             style="background:#ff6b35; color:#fff;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-circle me-2"></i> Vui lòng đăng nhập để tiếp tục!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    @RenderSection("scripts", required: false)
+
+<script>
+    var searchResultEl = document.createElement('div');
+    searchResultEl.id = 'searchResult';
+    document.body.appendChild(searchResultEl);
+    let searchTimeout;
+    let lastKeyword = '';
+    // ── Mobile nav toggle ────────────
+    function toggleNav() {
+        var collapse = document.getElementById('navCollapse');
+        var icon = document.getElementById('navTogglerIcon');
+
+        collapse.classList.toggle('open');
+
+        // đổi icon bars ↔ xmark
+        if (collapse.classList.contains('open')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+        } else {
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        }
+    }
+
+    // Đóng menu khi bấm ra ngoài
+    document.addEventListener('click', function (e) {
+        var collapse = document.getElementById('navCollapse');
+        var toggler = document.getElementById('navToggler');
+        if (!collapse || !toggler) return;
+        if (!collapse.contains(e.target) && !toggler.contains(e.target)) {
+            collapse.classList.remove('open');
+            var icon = document.getElementById('navTogglerIcon');
+            if (icon) {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        }
+    });
+    function positionSearchResult() {
+        var box = document.querySelector('.nav-search');
+        if (!box) return;
+
+        var rect = box.getBoundingClientRect();
+        var result = document.getElementById("searchResult");
+        var dropWidth = 340;
+        var windowWidth = window.innerWidth;
+
+        // Tính left, chống tràn phải
+        var leftPos = rect.left;
+        if (leftPos + dropWidth > windowWidth - 10) {
+            leftPos = windowWidth - dropWidth - 10;
+        }
+
+        result.style.position = "fixed";
+        result.style.top = (rect.bottom + 6) + "px";
+        result.style.left = leftPos + "px";
+        result.style.width = dropWidth + "px";
+        result.style.maxWidth = "90vw";
+    }
+
+    $("#searchBox").on("keyup", function () {
+        clearTimeout(searchTimeout);
+
+        var keyword = $(this).val().trim();
+
+        if (keyword === lastKeyword && keyword.length >= 2) return;
+        lastKeyword = keyword;
+
+        searchTimeout = setTimeout(function () {
+            if (keyword.length < 1) {
+                $("#searchResult").fadeOut(150);
+                return;
+            }
+
+            positionSearchResult();
+
+            $.ajax({
+                url: '/Book/Search',
+                type: 'GET',
+                data: { keyword: keyword },
+                dataType: 'json',
+
+                beforeSend: function () {
+                    positionSearchResult(); // ← gọi TRƯỚC khi fadeIn
+                    $("#searchResult")
+                        .html('<div class="search-loading"><i class="fas fa-spinner fa-spin"></i> Đang tìm...</div>')
+                        .show(); // dùng show() thay fadeIn để không reset position
+                },
+
+                success: function (data) {
+                    if (!data || data.length === 0) {
+                        $("#searchResult")
+                            .html('<div class="search-no-result">Không tìm thấy sách nào phù hợp</div>');
+                        positionSearchResult(); // ← gọi lại sau render
+                        return;
+                    }
+
+                    let html = '';
+                    data.forEach(function (item) {
+                        let imageUrl = item.CoverImage
+                            ? '/Content/images/' + item.CoverImage
+                            : '/Content/images/default.jpg';
+
+                        html += `
+                    <a href="/Book/Details/${item.BookID}" class="search-item">
+                        <img src="${imageUrl}"
+                             width="40" height="55"
+                             style="width:40px;height:55px;object-fit:cover;border-radius:6px;flex-shrink:0;"
+                             onerror="this.src='/Content/images/default.jpg'">
+                        <div class="search-item-info">
+                            <span class="search-item-title">${escapeHtml(item.Title)}</span>
+                            ${item.AuthorName
+                                            ? `<small class="search-item-author">${escapeHtml(item.AuthorName)}</small>`
+                                            : ''}
+                        </div>
+                    </a>`;
+                    });
+
+                    html += `
+                    <a href="/Book/Search?keyword=${encodeURIComponent(keyword)}"
+                       class="search-item view-all">
+                       <i class="fas fa-search"></i>
+                       <span>Xem tất cả kết quả</span>
+                    </a>`;
+
+                    $("#searchResult").html(html);
+                    positionSearchResult(); // ← gọi lại SAU khi render xong
+                    $("#searchResult").show();
+                },
+
+                error: function () {
+                    $("#searchResult")
+                        .html('<div class="search-error">Có lỗi xảy ra, vui lòng thử lại</div>')
+                        .fadeIn(150);
+                }
+            });
+
+        }, 300);
+    });
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    $(window).on("resize scroll", function () {
+        if ($("#searchResult").is(":visible")) {
+            positionSearchResult();
+        }
+    });
+
+    $(document).on("click", function (e) {
+        if (!$(e.target).closest('.nav-search, #searchResult').length) {
+            $("#searchResult").fadeOut(150);
+        }
+    });
+
+    $(document).on("keyup", function (e) {
+        if (e.key === "Escape") {
+            $("#searchResult").fadeOut(150);
+        }
+    });
+</script>
+<script>
+    // ========== USER DROPDOWN TOGGLE ==========
+    (function() {
+    const userDropdown = document.querySelector('.nav-dropdown');
+    if (!userDropdown) return;
+
+    const userBtn = userDropdown.querySelector('.nav-icon-btn');
+    const dropdownMenu = userDropdown.querySelector('.nav-dropdown-menu');
+
+    if (userBtn) {
+    userBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    userDropdown.classList.toggle('open');
+    });
+    }
+
+    // Đóng khi click ra ngoài
+    document.addEventListener('click', function(e) {
+    if (!userDropdown.contains(e.target)) {
+    userDropdown.classList.remove('open');
+    }
+    });
+
+    // Đóng khi nhấn ESC
+    document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && userDropdown.classList.contains('open')) {
+    userDropdown.classList.remove('open');
+    }
+    });
+    })();
+</script>
+</body>
+</html>

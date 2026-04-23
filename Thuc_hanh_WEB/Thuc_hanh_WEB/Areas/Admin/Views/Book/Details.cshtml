@@ -1,0 +1,86 @@
+﻿@model Thuc_hanh_WEB.Models.Book
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Chi tiết Sách";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Hồ sơ Sách</h4>
+                <div class="btn-group">
+                    <a href="@Url.Action("Edit", new { id = Model.BookID })" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit me-1"></i> Chỉnh sửa</a>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm"><i class="fas fa-list me-1"></i> Danh sách</a>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row gx-5">
+                    <!-- Ảnh bìa sách -->
+                    <div class="col-md-4 text-center mb-4 mb-md-0">
+                        <img src="@Model.CoverImage" class="img-fluid rounded shadow" style="max-height: 400px; object-fit: cover; border: 1px solid #dee2e6;" onerror="this.src='/Content/images/no-image.png'" alt="Cover image for @Model.Title" />
+                    </div>
+                    
+                    <!-- Chi tiết sách -->
+                    <div class="col-md-8">
+                        <h2 class="fw-bold mb-3">@Model.Title</h2>
+                        
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <h3 class="text-danger fw-bold mb-0">@String.Format("{0:N0} đ", Model.Price)</h3>
+                            @if (Model.Stock > 10)
+                            {
+                                <span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i> Tồn kho: @Model.Stock</span>
+                            }
+                            else if (Model.Stock > 0)
+                            {
+                                <span class="badge bg-warning text-dark py-2 px-3"><i class="fas fa-exclamation-triangle me-1"></i> Gần hết: @Model.Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger py-2 px-3"><i class="fas fa-times-circle me-1"></i> Hết hàng</span>
+                            }
+                        </div>
+
+                        <hr class="text-muted" />
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted fw-semibold">Tác giả:</div>
+                            <div class="col-sm-8 fw-medium">@(Model.Author?.Name ?? "Không rõ")</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted fw-semibold">Danh mục phân loại:</div>
+                            <div class="col-sm-8"><span class="badge bg-info text-dark bg-opacity-25 border border-info">@(Model.Category?.CategoryName ?? "Chưa phân loại")</span></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted fw-semibold">Nhà xuất bản:</div>
+                            <div class="col-sm-8 fw-medium">@(Model.Publisher?.Name ?? "Không rõ")</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted fw-semibold">Mã ISBN:</div>
+                            <div class="col-sm-8 text-secondary">@(string.IsNullOrEmpty(Model.ISBN) ? "N/A" : Model.ISBN)</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted fw-semibold">Ngày tải lên hệ thống:</div>
+                            <div class="col-sm-8 text-secondary">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-light rounded border">
+                            <h6 class="fw-semibold text-secondary mb-2">📄 Mô tả / Tóm tắt nội dung:</h6>
+                            <p class="mb-0 text-muted" style="line-height: 1.6;">
+                                @if (!string.IsNullOrEmpty(Model.Description))
+                                {
+                                    @Html.Raw(Model.Description.Replace("\n", "<br/>"))
+                                }
+                                else
+                                {
+                                    <em>Chưa có giới thiệu về cuốn sách này.</em>
+                                }
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

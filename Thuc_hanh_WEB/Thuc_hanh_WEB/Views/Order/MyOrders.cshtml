@@ -1,0 +1,477 @@
+﻿@model Thuc_hanh_WEB.Models.ViewModels.MyOrdersViewModel
+
+@{
+    ViewBag.Title = "Đơn hàng của tôi - BookStore";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/myorders.css")" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+}
+
+<div class="myorders-page">
+    <!-- Header -->
+    <div class="myorders-header">
+        <h1 class="myorders-title">Đơn hàng của tôi</h1>
+
+        <div class="myorders-stats">
+            <div class="stat-item">
+                <div class="stat-value">@Model.TotalOrders</div>
+                <div class="stat-label">Tổng đơn</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@string.Format("{0:N0}đ", Model.TotalSpent)</div>
+                <div class="stat-label">Đã chi</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">@Model.DeliveredOrders</div>
+                <div class="stat-label">Đã giao</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        @{
+            var filters = new Dictionary<string, string>
+            {
+                { "all", "Tất cả" },
+                { "pending", "Chờ xác nhận" },
+                { "confirmed", "Đã xác nhận" },
+                { "shipping", "Đang giao" },
+                { "delivered", "Đã giao" },
+                { "cancelled", "Đã hủy" }
+            };
+
+            var counts = new Dictionary<string, int>
+            {
+                { "all", Model.TotalOrders },
+                { "pending", Model.PendingOrders },
+                { "confirmed", Model.ConfirmedOrders },
+                { "shipping", Model.ShippingOrders },
+                { "delivered", Model.DeliveredOrders },
+                { "cancelled", Model.CancelledOrders }
+            };
+        }
+
+            @foreach (var filter in filters)
+            {
+                var count = counts[filter.Key];
+                <a href="@Url.Action("MyOrders", "Order", new { filter = filter.Key, page = 1 })"
+                   class="filter-tab @(Model.Filter == filter.Key ? "active" : "")">
+                    @filter.Value
+                    @if (count > 0)
+                    {
+                        <span class="count">@count</span>
+                    }
+                </a>
+            }
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <!-- Empty State -->
+        <div class="orders-empty">
+            <div class="orders-empty-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h3>Chưa có đơn hàng nào</h3>
+            <p>Bạn chưa đặt mua sản phẩm nào. Hãy khám phá ngay!</p>
+            <a href="@Url.Action("Index", "Home")" class="orders-empty-btn">
+                <i class="fas fa-shopping-cart"></i> Mua sắm ngay
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Orders List -->
+        <div class="orders-list">
+            @foreach (var order in Model.Orders)
+            {
+                <div class="order-card" data-order-id="@order.OrderID">
+                    <!-- Order Header -->
+                    <div class="order-header">
+                        <div class="order-info-left">
+                            <span class="order-id">
+                                <i class="fas fa-hashtag"></i> #BOOK@(order.OrderID.ToString("D8"))
+                            </span>
+                            <span class="order-date">
+                                <i class="far fa-calendar-alt"></i>
+                                @order.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                            <span class="order-status-badge status-@order.Status.ToLower()">
+                                @switch (order.Status)
+                                {
+                                    case "Pending":
+                                        <i class="fas fa-clock"></i>
+                                        <span>Chờ xác nhận</span>
+                                        break;
+                                    case "Confirmed":
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Đã xác nhận</span>
+                                        break;
+                                    case "Cancelled":
+                                        <i class="fas fa-times-circle"></i>
+                                        <span>Đã hủy</span>
+                                        break;
+                                }
+                            </span>
+                            <span class="order-status-badge shipping-@order.ShippingStatus?.ToLower()">
+                                @switch (order.ShippingStatus)
+                                {
+                                    case "Pending":
+                                        <i class="fas fa-hourglass-half"></i>
+                                        <span>Chờ xử lý</span>
+                                        break;
+                                    case "Processing":
+                                        <i class="fas fa-box"></i>
+                                        <span>Đang xử lý</span>
+                                        break;
+                                    case "Shipping":
+                                        <i class="fas fa-truck"></i>
+                                        <span>Đang giao hàng</span>
+                                        break;
+                                    case "Delivered":
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Đã giao hàng</span>
+                                        break;
+                                    case "Returned":
+                                        <i class="fas fa-undo"></i>
+                                        <span>Trả hàng</span>
+                                        break;
+                                }
+                            </span>
+                        </div>
+                        <div class="order-info-right">
+                            <div class="order-total">
+                                @string.Format("{0:N0}đ", order.TotalAmount)
+                                <small>VNĐ</small>
+                            </div>
+                            <div class="order-payment-method">
+                                <span class="order-status-badge payment-@order.PaymentStatus?.ToLower()">
+                                    @if (order.PaymentStatus == "Paid")
+                                    {
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Đã thanh toán</span>
+                                    }
+                                    else if (order.PaymentStatus == "Unpaid")
+                                    {
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <span>Chưa thanh toán</span>
+                                    }
+                                    else if (order.PaymentStatus == "Refunded")
+                                    {
+                                        <i class="fas fa-undo-alt"></i>
+                                        <span>Đã hoàn tiền</span>
+                                    }
+                                </span>
+                                <span>
+                                    <i class="fas fa-credit-card"></i>
+                                    @switch (order.PaymentMethod)
+                                    {
+                                        case "COD":
+                                            <span>Thanh toán khi nhận hàng</span>
+                                            break;
+                                        case "BankTransfer":
+                                            <span>Chuyển khoản</span>
+                                            break;
+                                        case "VNPAY":
+                                            <span>VNPAY</span>
+                                            break;
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="order-items">
+                        @foreach (var item in order.Items.Take(2))
+                        {
+                            <div class="order-item">
+                                <div class="item-image">
+                                    <img src="@(item.BookImage != null && item.BookImage.StartsWith("/") ? item.BookImage : Url.Content("~/Content/images/" + (item.BookImage ?? "default.jpg")))"
+                                         alt="@item.BookTitle"
+                                         onerror="this.src='@Url.Content("~/Content/images/default-book.jpg")'">
+                                </div>
+                                <div class="item-details">
+                                    <div class="item-title">@item.BookTitle</div>
+                                    <div class="item-meta">
+                                        <span class="item-price">
+                                            <i class="fas fa-tag"></i>
+                                            @string.Format("{0:N0}đ", item.UnitPrice)
+                                        </span>
+                                        <span class="item-quantity">
+                                            <i class="fas fa-times"></i> @item.Quantity
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="item-total">
+                                    @string.Format("{0:N0}đ", item.Total)
+                                </div>
+                            </div>
+                        }
+                        @if (order.Items.Count > 2)
+                        {
+                            <div class="more-items">
+                                <i class="fas fa-ellipsis-h"></i>
+                                và @(order.Items.Count - 2) sản phẩm khác
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Order Footer -->
+                    <div class="order-footer">
+                        <div class="order-summary">
+                            <div class="summary-item">
+                                <i class="fas fa-boxes"></i>
+                                <span>Tổng số:</span>
+                                <strong>@order.TotalItems sản phẩm</strong>
+                            </div>
+                            @if (!string.IsNullOrEmpty(order.ShippingCode))
+                            {
+                                <div class="shipping-code">
+                                    <i class="fas fa-truck"></i>
+                                    Mã vận đơn: @order.ShippingCode
+                                </div>
+                            }
+                            @if (order.DeliveredDate.HasValue)
+                            {
+                                <div class="summary-item">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Ngày giao:</span>
+                                    <strong>@order.DeliveredDate.Value.ToString("dd/MM/yyyy")</strong>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="order-actions">
+                            <a href="@Url.Action("OrderDetail", "Order", new { id = order.OrderID })"
+                               class="btn-action btn-view">
+                                <i class="fas fa-eye"></i> Chi tiết
+                            </a>
+
+                            @if (order.Status == "Pending")
+                            {
+                                <button type="button"
+                                        class="btn-action btn-cancel"
+                                        onclick="showCancelModal(@order.OrderID)">
+                                    <i class="fas fa-times"></i> Hủy đơn
+                                </button>
+                            }
+
+                            @if (order.ShippingStatus == "Shipping")
+                            {
+                                <a href="@Url.Action("TrackOrder", "Order", new { id = order.OrderID })"
+                                   class="btn-action btn-view"
+                                   style="background: #17a2b8;">
+                                    <i class="fas fa-map-marker-alt"></i> Theo dõi
+                                </a>
+                            }
+
+                            @if (order.ShippingStatus == "Delivered")
+                            {
+                                <button type="button"
+                                        class="btn-action btn-reorder"
+                                        onclick="reorder(@order.OrderID)">
+                                    <i class="fas fa-redo"></i> Mua lại
+                                </button>
+                                <a href="@Url.Action("Review", "Book", new { id = order.Items.First().BookID })"
+                                   class="btn-action btn-review">
+                                    <i class="fas fa-star"></i> Đánh giá
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        if (Model.TotalPages > 1)
+        {
+            <ul class="pagination">
+                @if (Model.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("MyOrders", new { filter = Model.Filter, page = Model.CurrentPage - 1 })">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("MyOrders", new { filter = Model.Filter, page = i })">@i</a>
+                        </li>
+                    }
+                    else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("MyOrders", new { filter = Model.Filter, page = Model.CurrentPage + 1 })">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+    }
+</div>
+
+<!-- Cancel Order Modal -->
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Xác nhận hủy đơn</h3>
+            <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn hủy đơn hàng này?</p>
+            <p style="color: #dc3545; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i>
+                Hành động này không thể hoàn tác!
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeCancelModal()">
+                <i class="fas fa-times"></i> Không, giữ lại
+            </button>
+            <button class="modal-btn modal-btn-confirm" id="confirmCancelBtn">
+                <i class="fas fa-check"></i> Xác nhận hủy
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        let currentOrderId = null;
+
+        // Hiển thị modal hủy đơn
+        function showCancelModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('cancelModal').style.display = 'block';
+        }
+
+        // Đóng modal
+        function closeCancelModal() {
+            document.getElementById('cancelModal').style.display = 'none';
+            currentOrderId = null;
+        }
+
+        // Xử lý hủy đơn
+        document.getElementById('confirmCancelBtn')?.addEventListener('click', function() {
+            if (!currentOrderId) return;
+
+            fetch('@Url.Action("CancelOrder", "Order")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: 'id=' + currentOrderId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'Thành công!', data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showToast('error', 'Lỗi!', data.message);
+                }
+                closeCancelModal();
+            })
+            .catch(error => {
+                showToast('error', 'Lỗi!', 'Có lỗi xảy ra, vui lòng thử lại!');
+                closeCancelModal();
+            });
+        });
+
+        // Xử lý mua lại
+        function reorder(orderId) {
+            fetch('@Url.Action("Reorder", "Order")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: 'id=' + orderId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'Thành công!', data.message);
+                    if (data.redirectUrl) {
+                        setTimeout(() => {
+                            window.location.href = data.redirectUrl;
+                        }, 1500);
+                    }
+                } else {
+                    showToast('error', 'Lỗi!', data.message);
+                }
+            })
+            .catch(error => {
+                showToast('error', 'Lỗi!', 'Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        }
+
+        // Hiển thị toast
+        function showToast(type, title, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+
+        // Đóng modal khi click bên ngoài
+        window.onclick = function(event) {
+            const modal = document.getElementById('cancelModal');
+            if (event.target == modal) {
+                closeCancelModal();
+            }
+        }
+
+        // Xử lý token
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thêm token nếu chưa có
+            if (!document.querySelector('input[name="__RequestVerificationToken"]')) {
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = '@Html.AntiForgeryToken().ToHtmlString()'.match(/value="([^"]+)"/)[1];
+                document.body.appendChild(tokenInput);
+            }
+        });
+    </script>
+}

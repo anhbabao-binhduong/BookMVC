@@ -1,0 +1,35 @@
+﻿@model Thuc_hanh_WEB.Models.Publisher
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Xóa Nhà xuất bản";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-danger shadow-lg">
+            <div class="card-header bg-danger text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> Xác Yêu Cầu Xóa</h4>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-4 text-danger">
+                    <i class="far fa-building fa-4x opacity-75"></i>
+                </div>
+                <h4 class="fw-bold mb-3">@Model.Name</h4>
+                <p class="text-muted mb-4">Bạn đang thực hiện thao tác xóa vĩnh viễn <strong>Nhà xuất bản (ID: #@Model.PublisherID)</strong> này ra khỏi hệ thống cơ sở dữ liệu.</p>
+                
+                <div class="alert alert-warning border-warning" role="alert">
+                    <i class="fas fa-info-circle me-1"></i> <strong>Lưu ý quan trọng:</strong> Hành động này không thể hoàn tác. Việc xóa nhà xuất bản có thể ảnh hưởng hoặc gây lỗi với các đầu sách đang phát hành thuộc NXB này.
+                </div>
+
+                @using (Html.BeginForm("Delete", "Publisher", new { id = Model.PublisherID }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="@Url.Action("Index")" class="btn btn-light border px-4">Quay lại (Hủy bỏ)</a>
+                        <button type="submit" class="btn btn-danger px-4 fw-bold"><i class="fas fa-trash-alt me-2"></i> Xóa vĩnh viễn</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

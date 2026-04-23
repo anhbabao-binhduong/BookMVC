@@ -1,0 +1,252 @@
+﻿@{
+    ViewBag.Title = "Trang Chủ - BookStore";
+}
+
+@* Link CSS riêng cho trang chủ *@
+@section head {
+    <link href="~/Content/css/home.css" rel="stylesheet" />
+}
+
+<!-- ===== HERO BANNER ===== -->
+<div class="hero-banner">
+    <div class="container">
+        <div class="hero-inner">
+            <div class="hero-badge">
+                <i class="fas fa-fire"></i> Hot nhất tuần này
+            </div>
+            <h1 class="hero-title">
+                Tri thức là <span>vô giá</span>,<br />sách là cầu nối.
+            </h1>
+            <p class="hero-sub">
+                Hàng ngàn đầu sách công nghệ, lập trình và kỹ năng chọn lọc —
+                giao tận tay bạn trong 24h.
+            </p>
+            <a href="#featured-books" class="hero-cta">
+                <i class="fas fa-book-open"></i> Khám phá ngay
+            </a>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <strong>5,000+</strong>
+                    <span>Đầu sách</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>50K+</strong>
+                    <span>Khách hàng</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>24h</strong>
+                    <span>Giao hàng</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>4.9★</strong>
+                    <span>Đánh giá</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ===== FEATURE BOXES ===== -->
+    <div class="row features-row g-3">
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon orange">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+                <h5>Giao hàng siêu tốc</h5>
+                <p>Nhận sách chỉ trong 24h làm việc. Miễn phí giao hàng đơn trên 300K.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon green">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h5>Thanh toán an toàn</h5>
+                <p>Bảo mật thông tin 100%. Hỗ trợ thanh toán COD, chuyển khoản, ví điện tử.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon blue">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h5>Đổi trả dễ dàng</h5>
+                <p>7 ngày đổi trả nếu sản phẩm lỗi. Cam kết hoàn tiền 100%.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SÁCH NỔI BẬT ===== -->
+    <div class="section-header" id="featured-books">
+        <div>
+            <h2 class="section-title">
+                Sách <span>nổi bật</span>
+            </h2>
+            <div class="section-line"></div>
+        </div>
+        <a href="@Url.Action("Index","Book")" class="section-link">
+            Xem tất cả <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var book in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="book-card">
+
+                    <a href="@Url.Action("Details","Book", new { id = book.BookID })"
+                       class="text-decoration-none">
+                        <div class="book-card-img-wrap">
+                            <img src="@(book.CoverImage != null && book.CoverImage.StartsWith("/") ? book.CoverImage : Url.Content("~/Content/images/" + book.CoverImage))"
+                                 alt="@book.Title" />
+                            <span class="book-card-badge">Mới</span>
+                        </div>
+                    </a>
+
+                    <div class="book-card-body">
+                        <div class="book-card-title">@book.Title</div>
+                        <div class="book-card-author">
+                            <i class="fas fa-pen-nib"></i>@book.Author.Name
+                        </div>
+                        <div class="book-card-price">
+                            @string.Format("{0:N0}đ", book.Price)
+                        </div>
+                    </div>
+
+                    <div class="book-card-footer">
+                        <button class="btn-add-cart add-to-cart" data-id="@book.BookID">
+                            <i class="fas fa-cart-plus"></i> Giỏ hàng
+                        </button>
+                        <button class="btn-buy-now buy-now" data-id="@book.BookID">
+                            <i class="fas fa-bolt"></i> Mua ngay
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ===== PROMO BANNER ===== -->
+    <div class="promo-banner">
+        <div class="promo-text">
+            <h3>Thành viên mới – Ưu đãi lên đến <span>20%</span> 🎁</h3>
+            <p>Đăng ký tài khoản hôm nay, nhận ngay voucher giảm giá cho đơn đầu tiên.</p>
+        </div>
+        <a href="@Url.Action("Register","Account")" class="promo-btn">
+            <i class="fas fa-user-plus"></i> Đăng ký ngay
+        </a>
+    </div>
+
+</div>
+
+<!-- ===== DANH MỤC PHỔ BIẾN ===== -->
+<div class="container categories-section">
+
+    <div class="section-header" id="popular-categories">
+        <div>
+            <h2 class="section-title">Danh mục <span>phổ biến</span></h2>
+            <div class="section-line"></div>
+        </div>
+        <a href="@Url.Action("Index","Category")" class="section-link">
+            Xem tất cả <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="category-card">
+                <div class="cat-icon c1">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div class="cat-name">Lập trình</div>
+                <p class="cat-desc">C#, Java, Python, thuật toán & cấu trúc dữ liệu...</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="category-card">
+                <div class="cat-icon c2">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div class="cat-name">Hệ thống & Mạng</div>
+                <p class="cat-desc">Bảo mật, server, cloud, quản trị mạng...</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="category-card">
+                <div class="cat-icon c3">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <div class="cat-name">Thiết kế Web</div>
+                <p class="cat-desc">HTML, CSS, UI/UX, Responsive Design...</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="category-card">
+                <div class="cat-icon c4">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="cat-name">Cơ sở dữ liệu</div>
+                <p class="cat-desc">SQL Server, MySQL, MongoDB, Redis...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+    <script>
+        // ===== THÊM VÀO GIỎ =====
+        document.querySelectorAll(".add-to-cart").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            var toastEl = document.getElementById("loginToast");
+                            new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                            setTimeout(() => {
+                                var returnUrl = window.location.pathname + window.location.search;
+                                window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(returnUrl);
+                            }, 2000);
+                            return;
+                        }
+                        var badge = document.getElementById("cart-count");
+                        if (badge) badge.innerText = data.count;
+                        var toastEl = document.getElementById("cartToast");
+                        if (toastEl) new bootstrap.Toast(toastEl, { delay: 2000 }).show();
+                    });
+            });
+        });
+
+        // ===== MUA NGAY =====
+        document.querySelectorAll(".buy-now").forEach(btn => {
+            btn.addEventListener("click", function () {
+                var bookId = this.dataset.id;
+                fetch("/Cart/BuyNow", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "id=" + bookId
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success === false) {
+                            window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent("/Cart");
+                            return;
+                        }
+                        window.location.href = "/Cart";
+                    });
+            });
+        });
+    </script>
+}

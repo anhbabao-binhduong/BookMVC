@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "Xác nhận email";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+                <h4 class="text-center fw-bold mb-3">
+                    <i class="fas fa-envelope-open-text text-primary me-2"></i>
+                    Xác nhận email
+                </h4>
+
+                <p class="text-center text-muted small mb-4">
+                    Vui lòng nhập <strong>mã xác thực 4 chữ số</strong> đã được gửi tới email của bạn
+                </p>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger text-center py-2">
+                        @ViewBag.Error
+                    </div>
+                }
+
+                <form method="post" action="@Url.Action("VerifyCode","Account")">
+
+                    <div class="mb-3">
+                        <input type="text"
+                               name="code"
+                               class="form-control text-center fs-4 fw-bold"
+                               maxlength="4"
+                               inputmode="numeric"
+                               pattern="\d*"
+                               placeholder="----"
+                               autocomplete="off"
+                               required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Xác nhận
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Không nhận được mã?
+                        <a href="#" class="text-decoration-none">Gửi lại</a>
+                    </small>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+    document.querySelector('input[name="code"]')?.focus();
+    </script>
+}

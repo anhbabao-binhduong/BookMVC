@@ -1,0 +1,117 @@
+﻿@model IEnumerable<Thuc_hanh_WEB.Models.Coupon>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý Mã giảm giá";
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-lg-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h4 class="mb-0 text-primary"><i class="fas fa-ticket-alt me-2"></i>Danh sách Mã giảm giá (Coupon)</h4>
+                <a href="@Url.Action("Create")" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-plus me-1"></i> Thêm Mã Mới
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="p-5 text-center">
+                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3 opacity-50"></i>
+                        <h5 class="text-muted">Chưa có mã giảm giá nào</h5>
+                        <p class="text-muted small">Hãy tạo một mã giảm giá mới để kích thích người dùng mua sắm.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4 text-center" style="width: 5%;">ID</th>
+                                    <th style="width: 15%;">Mã Code</th>
+                                    <th style="width: 10%; text-align: center;">Loại</th>
+                                    <th style="width: 10%; text-align: end;">Giá trị</th>
+                                    <th style="width: 15%; text-align: end;">Đơn tối thiểu</th>
+                                    <th style="width: 12%; text-align: center;">Hạn SD</th>
+                                    <th style="width: 10%; text-align: center;">Đã dùng</th>
+                                    <th style="width: 8%; text-align: center;">Trạng thái</th>
+                                    <th class="text-center pe-4" style="width: 15%;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 text-center fw-bold text-secondary">#@c.CouponID</td>
+                                        <td class="fw-bold">
+                                            <span class="px-2 py-1 bg-light border border-dashed border-primary rounded text-primary text-uppercase font-monospace">@c.Code</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (c.DiscountType == "Percent")
+                                            {
+                                                <span class="badge bg-info text-dark"><i class="fas fa-percentage me-1"></i> % Giá trị</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary"><i class="fas fa-money-bill-wave me-1"></i> Tiền mặt</span>
+                                            }
+                                        </td>
+                                        <td class="text-end fw-bold text-danger">
+                                            @(c.DiscountType == "Percent" ? $"{c.DiscountValue}%" : $"{c.DiscountValue:N0} đ")
+                                        </td>
+                                        <td class="text-end text-muted">
+                                            @(c.MinOrderAmount > 0 ? $"{c.MinOrderAmount:N0} đ" : "Không áp dụng")
+                                        </td>
+                                        <td class="text-center">
+                                            @if (c.ExpiryDate.HasValue)
+                                            {
+                                                if (c.ExpiryDate.Value < DateTime.Now)
+                                                {
+                                                    <span class="text-danger small fw-semibold"><i class="far fa-clock"></i> @c.ExpiryDate.Value.ToString("dd/MM/yyyy")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-success small fw-semibold"><i class="far fa-calendar-check"></i> @c.ExpiryDate.Value.ToString("dd/MM/yyyy")</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">Vô hạn</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark border">
+                                                @c.UsedCount / @(c.MaxUsage?.ToString() ?? "∞")
+                                            </span>
+                                            @if (c.MaxUsage.HasValue && c.UsedCount >= c.MaxUsage.Value)
+                                            {
+                                                <div class="small text-danger mt-1" style="font-size: 11px;">Hết lượt</div>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (c.IsActive)
+                                            {
+                                                <span class="badge border border-success text-success bg-success bg-opacity-10"><i class="fas fa-check"></i> Bật</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge border border-danger text-danger bg-danger bg-opacity-10"><i class="fas fa-lock"></i> Tắt</span>
+                                            }
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group shadow-sm" role="group">
+                                                <a href="@Url.Action("Edit", new { id = c.CouponID })" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+                                                <a href="@Url.Action("Delete", new { id = c.CouponID })" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

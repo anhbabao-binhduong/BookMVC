@@ -1,0 +1,13 @@
+﻿@model Thuc_hanh_WEB.Models.Author
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Xóa tác giả";
+}
+<h3>⚠️ Xác nhận xóa tác giả "@Model.Name"?</h3>
+<div class="alert alert-danger">Hành động này sẽ xóa vĩnh viễn và có thể ảnh hưởng đến các sách liên quan (nếu chưa ràng buộc khóa ngoại).</div>
+@using (Html.BeginForm("Delete", "Author", new { id = Model.AuthorID }, FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">Hủy</a>
+}
