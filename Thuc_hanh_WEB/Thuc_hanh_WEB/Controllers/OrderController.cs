@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using Thuc_hanh_WEB.Helpers;
 using Thuc_hanh_WEB.Models;
 using Thuc_hanh_WEB.Models.ViewModels;
 namespace Thuc_hanh_WEB.Controllers
@@ -164,7 +166,6 @@ namespace Thuc_hanh_WEB.Controllers
             }
 
             order.Status = "Cancelled";
-            order.ShippingStatus = "Returned";
             db.SaveChanges();
 
             return Json(new
@@ -394,10 +395,33 @@ namespace Thuc_hanh_WEB.Controllers
         Session.Remove("CouponCode");
         Session.Remove("CouponDiscount");
 
-        // ── VNPAY: redirect sang cổng thanh toán ─────────────────
+        // ── VNPAY: redirect sang cổng thanh toán ─────────────────────────────
         if (model.PaymentMethod == "VNPAY")
         {
-            // TODO: return RedirectToAction("VnpayCheckout", new { orderId = order.OrderID });
+            string vnpUrl      = ConfigurationManager.AppSettings["vnp_Url"];
+            string vnpHashKey  = ConfigurationManager.AppSettings["vnp_HashSecret"];
+            string vnpTmnCode  = ConfigurationManager.AppSettings["vnp_TmnCode"];
+            string returnUrl   = Request.Url.GetLeftPart(UriPartial.Authority)
+                                 + Url.Action("VnPayReturn", "Order");
+
+            var vnpay = new VnPayLibrary();
+            vnpay.AddRequestData("vnp_Version",    "2.1.0");
+            vnpay.AddRequestData("vnp_Command",    "pay");
+            vnpay.AddRequestData("vnp_TmnCode",    vnpTmnCode);
+            vnpay.AddRequestData("vnp_Amount",     ((long)(total * 100)).ToString());
+            vnpay.AddRequestData("vnp_CurrCode",   "VND");
+            vnpay.AddRequestData("vnp_BankCode",   "");
+            vnpay.AddRequestData("vnp_TxnRef",     order.OrderID.ToString());
+            vnpay.AddRequestData("vnp_OrderInfo",  "Thanh toan don hang #" + order.OrderID);
+            vnpay.AddRequestData("vnp_OrderType",  "other");
+            vnpay.AddRequestData("vnp_Locale",     "vn");
+            vnpay.AddRequestData("vnp_ReturnUrl",  returnUrl);
+            vnpay.AddRequestData("vnp_IpAddr",     Request.UserHostAddress ?? "127.0.0.1");
+            vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+            vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+
+            string paymentUrl = vnpay.CreateRequestUrl(vnpUrl, vnpHashKey);
+            return Redirect(paymentUrl);
         }
 
         TempData["OrderSuccess"] = true;
@@ -407,6 +431,94 @@ namespace Thuc_hanh_WEB.Controllers
         TempData["FullName"] = model.FullName;
 
         return RedirectToAction("OrderSuccess");
+    }
+
+    // ================================================================
+    // GET /Order/VnPayReturn
+    // ================================================================
+    [HttpGet]
+    public ActionResult VnPayReturn()
+    {
+        string hashSecret = ConfigurationManager.AppSettings["vnp_HashSecret"];
+        bool isValid      = VnPayLibrary.ValidateSignature(Request.QueryString, hashSecret);
+
+        string responseCode = Request.QueryString["vnp_ResponseCode"];
+        string txnRef       = Request.QueryString["vnp_TxnRef"];  // OrderID
+        string transactionNo= Request.QueryString["vnp_TransactionNo"];
+
+        if (!isValid)
+        {
+            TempData["VnPayError"] = "Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.";
+            return RedirectToAction("VnPayFail");
+        }
+
+        if (!int.TryParse(txnRef, out int orderId))
+        {
+            TempData["VnPayError"] = "Mã đơn hàng không hợp lệ.";
+            return RedirectToAction("VnPayFail");
+        }
+
+        var order = db.Orders.Find(orderId);
+        if (order == null)
+        {
+            TempData["VnPayError"] = "Không tìm thấy đơn hàng.";
+            return RedirectToAction("VnPayFail");
+        }
+
+        if (responseCode == "00")
+        {
+            // Thanh toán thành công
+            order.PaymentStatus  = "Paid";
+            order.Status         = "Pending";
+            db.SaveChanges();
+
+            TempData["OrderSuccess"]  = true;
+            TempData["OrderID"]       = order.OrderID;
+            TempData["OrderTotal"]    = order.TotalAmount;
+            TempData["PaymentMethod"] = "VNPAY";
+            TempData["FullName"]      = order.FullName;
+            TempData["TransactionNo"] = transactionNo;
+
+            return RedirectToAction("OrderSuccess");
+        }
+        else
+        {
+            // Thanh toán thất bại / bị hủy
+            order.Status        = "Cancelled";
+            order.PaymentStatus = "Unpaid";
+            db.SaveChanges();
+
+            string errorMsg = "Thanh toán thất bại hoặc bị hủy.";
+            switch (responseCode)
+            {
+                case "24": errorMsg = "Bạn đã hủy giao dịch thanh toán."; break;
+                case "51": errorMsg = "Tài khoản của bạn không đủ số dư để thực hiện giao dịch."; break;
+                case "12": errorMsg = "Thẻ/Tài khoản của bạn bị khóa."; break;
+                case "09": errorMsg = "Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking."; break;
+                case "10": errorMsg = "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần."; break;
+                case "11": errorMsg = "Đã hết hạn chờ thanh toán."; break;
+                case "13": errorMsg = "Nhập sai mật khẩu xác thực giao dịch (OTP)."; break;
+                case "65": errorMsg = "Tài khoản đã vượt quá hạn mức giao dịch trong ngày."; break;
+                case "75": errorMsg = "Ngân hàng thanh toán đang bảo trì."; break;
+                case "79": errorMsg = "Nhập sai mật khẩu thanh toán quá số lần quy định."; break;
+                default:   errorMsg = $"Lỗi thanh toán từ ngân hàng (Mã lỗi: {responseCode})."; break;
+            }
+
+            TempData["VnPayError"]      = errorMsg;
+            TempData["VnPayOrderID"]    = orderId;
+            return RedirectToAction("VnPayFail");
+        }
+    }
+
+    // ================================================================
+    // GET /Order/VnPayFail
+    // ================================================================
+    [HttpGet]
+    public ActionResult VnPayFail()
+    {
+        ViewBag.Error   = TempData["VnPayError"]   as string ?? "Thanh toán thất bại.";
+        ViewBag.OrderID = TempData["VnPayOrderID"];
+        return View();
     }
 
     // ================================================================

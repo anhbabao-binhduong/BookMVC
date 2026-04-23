@@ -3,10 +3,9 @@
     ViewBag.Title = "Thanh toán - BookStore";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var couponCode = Session["CouponCode"] as string ?? "";
-    var couponOk = !string.IsNullOrEmpty(couponCode);
-    var subtotal = Model.Items.Sum(i => i.Price * i.Quantity);
+    var couponOk   = !string.IsNullOrEmpty(couponCode);
+    var subtotal   = Model.Items.Sum(i => i.Price * i.Quantity);
 
-    // Tính lại discount dựa trên subtotal thực tế của checkout (không dùng số cũ từ cart)
     decimal discount = 0m;
     if (couponOk)
     {
@@ -14,23 +13,23 @@
         if (result.IsValid)
         {
             discount = result.Discount;
-            Session["CouponDiscount"] = discount; // cập nhật lại session
+            Session["CouponDiscount"] = discount;
         }
         else
         {
-            // Coupon không còn hợp lệ với subtotal này
-            couponOk = false;
+            couponOk   = false;
             couponCode = "";
             Session.Remove("CouponCode");
             Session.Remove("CouponDiscount");
         }
     }
 
-    var ship = subtotal >= 199000 ? 0m : 30000m;
+    var ship  = subtotal >= 199000 ? 0m : 30000m;
     var total = subtotal - discount + ship;
 }
 
 @section styles {
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="@Url.Content("~/Content/css/checkout.css")" rel="stylesheet" />
 }
 
@@ -39,23 +38,27 @@
 
         <!-- HEADER -->
         <div class="co-header">
-            <a href="@Url.Action("Index","Cart")" class="co-back">← Giỏ hàng</a>
-            <span class="co-sep">›</span>
+            <a href="@Url.Action("Index","Cart")" class="co-back">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Quay lại giỏ hàng
+            </a>
             <h1 class="co-title">Thanh toán</h1>
         </div>
 
         <!-- STEPS -->
         <div class="co-steps">
             <div class="co-step done">
-                <div class="co-step__num">✓</div>
+                <div class="co-step__num">
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
                 <span>Giỏ hàng</span>
             </div>
-            <div class="co-step__arrow"></div>
+            <div class="co-step__line"></div>
             <div class="co-step active">
                 <div class="co-step__num">2</div>
                 <span>Thanh toán</span>
             </div>
-            <div class="co-step__arrow"></div>
+            <div class="co-step__line"></div>
             <div class="co-step">
                 <div class="co-step__num">3</div>
                 <span>Xác nhận</span>
@@ -64,10 +67,13 @@
 
         @if (TempData["Error"] != null)
         {
-            <div class="co-alert co-alert-err">⚠ @TempData["Error"]</div>
+            <div class="co-alert co-alert-err">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                @TempData["Error"]
+            </div>
         }
 
-        @using (Html.BeginForm("PlaceOrder", "Order", FormMethod.Post))
+        @using (Html.BeginForm("PlaceOrder", "Order", FormMethod.Post, new { id = "checkout-form" }))
         {
             @Html.AntiForgeryToken()
 
@@ -79,31 +85,31 @@
                     <!-- ĐỊA CHỈ GIAO HÀNG -->
                     <div class="co-card">
                         <div class="co-card-head">
-                            <h2 class="co-card-title">
-                                <span class="co-card-ico">📦</span>
-                                Địa chỉ giao hàng
-                            </h2>
+                            <div class="co-card-ico">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <h2 class="co-card-title">Địa chỉ giao hàng</h2>
                         </div>
                         <div class="co-card-body">
                             <div class="co-grid">
                                 <div class="co-fg">
-                                    <label class="co-label">Họ và tên *</label>
-                                    <input type="text" name="FullName" class="co-input"
+                                    <label class="co-label">Họ và tên <span class="co-req">*</span></label>
+                                    <input type="text" name="FullName" id="FullName" class="co-input"
                                            value="@Model.FullName" placeholder="Nguyễn Văn A" required />
                                 </div>
                                 <div class="co-fg">
-                                    <label class="co-label">Số điện thoại *</label>
-                                    <input type="text" name="Phone" class="co-input"
+                                    <label class="co-label">Số điện thoại <span class="co-req">*</span></label>
+                                    <input type="tel" name="Phone" id="Phone" class="co-input"
                                            value="@Model.Phone" placeholder="09xxxxxxxx" required />
                                 </div>
                                 <div class="co-fg co-col2">
-                                    <label class="co-label">Địa chỉ giao hàng *</label>
-                                    <input type="text" name="Address" class="co-input"
+                                    <label class="co-label">Địa chỉ giao hàng <span class="co-req">*</span></label>
+                                    <input type="text" name="Address" id="Address" class="co-input"
                                            value="@Model.Address" placeholder="Số nhà, đường, phường/xã, quận, tỉnh..." required />
                                 </div>
                                 <div class="co-fg co-col2">
-                                    <label class="co-label">Ghi chú cho đơn hàng</label>
-                                    <textarea name="Note" class="co-textarea"
+                                    <label class="co-label">Ghi chú đơn hàng <span class="co-optional">(tuỳ chọn)</span></label>
+                                    <textarea name="Note" id="Note" class="co-textarea"
                                               placeholder="VD: Giao giờ hành chính, gọi trước khi giao...">@Model.Note</textarea>
                                 </div>
                             </div>
@@ -113,49 +119,56 @@
                     <!-- PHƯƠNG THỨC THANH TOÁN -->
                     <div class="co-card">
                         <div class="co-card-head">
-                            <h2 class="co-card-title">
-                                <span class="co-card-ico">💳</span>
-                                Phương thức thanh toán
-                            </h2>
+                            <div class="co-card-ico">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                            </div>
+                            <h2 class="co-card-title">Phương thức thanh toán</h2>
                         </div>
                         <div class="co-card-body">
-                            <div class="co-pay-options">
+                            <div class="co-pay-options" id="pay-options">
 
                                 <!-- COD -->
-                                <div class="co-pay-opt selected" id="opt-cod" onclick="choosePay(this, 'COD')">
-                                    <input type="radio" name="PaymentMethod" value="COD" checked="checked" />
-                                    <div class="co-pay-icon">🚚</div>
+                                <label class="co-pay-opt selected" id="opt-cod">
+                                    <input type="radio" name="PaymentMethod" value="COD" checked="checked" onchange="choosePay('COD')" />
+                                    <div class="co-pay-icon co-pay-icon--cod">
+                                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h3l3 4v3h-6V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                    </div>
                                     <div class="co-pay-info">
                                         <div class="co-pay-name">Thanh toán khi nhận hàng (COD)</div>
-                                        <div class="co-pay-desc">Trả tiền mặt khi nhận được sách</div>
+                                        <div class="co-pay-desc">Trả tiền mặt khi nhận được sách tại nhà</div>
                                     </div>
-                                </div>
-
-                                <!-- CHUYỂN KHOẢN -->
-                                <div class="co-pay-opt" id="opt-bank" onclick="choosePay(this, 'BankTransfer')">
-                                    <input type="radio" name="PaymentMethod" value="BankTransfer" />
-                                    <div class="co-pay-icon">🏦</div>
-                                    <div class="co-pay-info">
-                                        <div class="co-pay-name">Chuyển khoản ngân hàng</div>
-                                        <div class="co-pay-desc">Chuyển khoản trước, giao hàng sau khi xác nhận</div>
-                                    </div>
-                                </div>
-                                <div class="co-bank-detail" id="bank-detail">
-                                    <strong>Ngân hàng:</strong> Vietcombank<br />
-                                    <strong>Số TK:</strong> 1234 5678 9012<br />
-                                    <strong>Chủ TK:</strong> BOOKSTORE VIET NAM<br />
-                                    <strong>Nội dung CK:</strong> <span id="bank-content">DH + Số điện thoại</span>
-                                </div>
+                                    <div class="co-pay-radio"></div>
+                                </label>
 
                                 <!-- VNPAY -->
-                                <div class="co-pay-opt" id="opt-vnpay" onclick="choosePay(this, 'VNPAY')">
-                                    <input type="radio" name="PaymentMethod" value="VNPAY" />
-                                    <div class="co-pay-icon">💜</div>
-                                    <div class="co-pay-info">
-                                        <div class="co-pay-name">VNPAY</div>
-                                        <div class="co-pay-desc">Thanh toán qua cổng VNPAY, ATM, QR Code</div>
+                                <label class="co-pay-opt" id="opt-vnpay">
+                                    <input type="radio" name="PaymentMethod" value="VNPAY" onchange="choosePay('VNPAY')" />
+                                    <div class="co-pay-icon co-pay-icon--vnpay">
+                                        <svg width="20" height="14" viewBox="0 0 80 28" fill="none">
+                                            <rect width="80" height="28" rx="4" fill="#0066CC"/>
+                                            <text x="5" y="20" font-family="Arial" font-size="16" font-weight="bold" fill="white">VN</text>
+                                            <text x="30" y="20" font-family="Arial" font-size="16" font-weight="bold" fill="#FF6600">PAY</text>
+                                        </svg>
                                     </div>
-                                    <span class="co-pay-badge">Nhanh</span>
+                                    <div class="co-pay-info">
+                                        <div class="co-pay-name">
+                                            VNPAY
+                                            <span class="co-pay-badge">Nhanh &amp; An toàn</span>
+                                        </div>
+                                        <div class="co-pay-desc">Thẻ ATM, Visa/Master, QR Code, Ví điện tử</div>
+                                    </div>
+                                    <div class="co-pay-radio"></div>
+                                </label>
+
+                                <!-- VNPAY INFO BOX -->
+                                <div class="co-vnpay-info" id="vnpay-info">
+                                    <div class="co-vnpay-info__icon">
+                                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#2563eb" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="co-vnpay-info__title">Thanh toán bảo mật qua VNPAY</div>
+                                        <div class="co-vnpay-info__text">Sau khi nhấn <strong>Xác nhận &amp; Thanh toán</strong>, bạn sẽ được chuyển đến cổng thanh toán VNPAY để hoàn tất giao dịch an toàn.</div>
+                                    </div>
                                 </div>
 
                             </div>
@@ -169,6 +182,7 @@
                     <div class="co-summary-card">
                         <div class="co-summary-head">
                             <div class="co-summary-title">Đơn hàng của bạn</div>
+                            <div class="co-summary-count">@Model.Items.Sum(i => i.Quantity) sản phẩm</div>
                         </div>
                         <div class="co-summary-body">
 
@@ -177,16 +191,17 @@
                                 @foreach (var item in Model.Items)
                                 {
                                     <div class="co-order-item">
-                                        <img src="@(item.Image != null && item.Image.StartsWith("/") ? item.Image : Url.Content("~/Content/images/" + item.Image))"
-                                             alt="@item.Title" class="co-order-item__img"
-                                             onerror="this.src='@Url.Content("~/Content/images/placeholder.jpg")'" />
+                                        <div class="co-order-item__img-wrap">
+                                            <img src="@(item.Image != null && item.Image.StartsWith("/") ? item.Image : Url.Content("~/Content/images/" + item.Image))"
+                                                 alt="@item.Title" class="co-order-item__img"
+                                                 onerror="this.src='@Url.Content("~/Content/images/placeholder.jpg")'" />
+                                            <span class="co-order-item__qty-badge">@item.Quantity</span>
+                                        </div>
                                         <div class="co-order-item__info">
                                             <div class="co-order-item__title">@item.Title</div>
-                                            <div class="co-order-item__qty">x@(item.Quantity)</div>
+                                            <div class="co-order-item__unit">@string.Format("{0:N0}đ", item.Price) / cuốn</div>
                                         </div>
-                                        <div class="co-order-item__price">
-                                            @string.Format("{0:N0}đ", item.Price * item.Quantity)
-                                        </div>
+                                        <div class="co-order-item__price">@string.Format("{0:N0}đ", item.Price * item.Quantity)</div>
                                     </div>
                                 }
                             </div>
@@ -194,37 +209,40 @@
                             @if (couponOk)
                             {
                                 <div class="co-coupon-tag">
-                                    🎟 @couponCode — Đã áp mã giảm giá
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 7h.01M7 3H5a2 2 0 00-2 2v2c0 1.1.9 2 2 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-2m-8 0h8"/></svg>
+                                    @couponCode — Đã áp mã giảm giá
                                 </div>
                             }
 
                             <!-- BREAKDOWN -->
                             <div class="co-breakdown">
                                 <div class="co-breakdown-row">
-                                    <span>Tạm tính (@Model.Items.Sum(i => i.Quantity) sản phẩm)</span>
+                                    <span>Tạm tính</span>
                                     <span>@string.Format("{0:N0}đ", subtotal)</span>
                                 </div>
                                 <div class="co-breakdown-row">
                                     <span>Phí vận chuyển</span>
-                                    <span>@(ship == 0 ? "Miễn phí" : string.Format("{0:N0}đ", ship))</span>
+                                    <span class="@(ship == 0 ? "co-free" : "")">@(ship == 0 ? "Miễn phí" : string.Format("{0:N0}đ", ship))</span>
                                 </div>
                                 @if (couponOk && discount > 0)
                                 {
-                                    <div class="co-breakdown-row discount">
+                                    <div class="co-breakdown-row co-discount">
                                         <span>Giảm giá (@couponCode)</span>
                                         <span>−@string.Format("{0:N0}đ", discount)</span>
                                     </div>
                                 }
                                 <div class="co-breakdown-divider"></div>
-                                <div class="co-breakdown-row total">
+                                <div class="co-breakdown-total">
                                     <span>Tổng cộng</span>
-                                    <span>@string.Format("{0:N0}đ", total)</span>
+                                    <span class="co-total-amount">@string.Format("{0:N0}đ", total)</span>
                                 </div>
                             </div>
 
-                            <button type="submit" class="co-submit-btn">
-                                🔒 Đặt hàng ngay
+                            <button type="submit" class="co-submit-btn" id="submit-btn">
+                                <span id="btn-icon">🔒</span>
+                                <span id="btn-text">Đặt hàng ngay</span>
                             </button>
+
                             <div class="co-secure">
                                 <span>🔒 Bảo mật SSL</span>
                                 <span>↩ Đổi trả 7 ngày</span>
@@ -243,28 +261,40 @@
 
 @section scripts {
     <script>
-        function choosePay(el, value) {
-            document.querySelectorAll('.co-pay-opt').forEach(function (opt) {
-                opt.classList.remove('selected');
-                opt.querySelector('input[type="radio"]').checked = false;
-            });
-            el.classList.add('selected');
-            el.querySelector('input[type="radio"]').checked = true;
+        var currentMethod = 'COD';
 
-            var bankDetail = document.getElementById('bank-detail');
-            if (value === 'BankTransfer') {
-                bankDetail.classList.add('show');
-                var phone = document.querySelector('input[name="Phone"]').value;
-                document.getElementById('bank-content').textContent = 'DH ' + (phone || '[SĐT]');
+        function choosePay(value) {
+            currentMethod = value;
+            document.querySelectorAll('.co-pay-opt').forEach(function (el) {
+                el.classList.remove('selected');
+            });
+
+            var target = value === 'COD' ? document.getElementById('opt-cod') : document.getElementById('opt-vnpay');
+            if (target) target.classList.add('selected');
+
+            // VNPAY info box
+            var info = document.getElementById('vnpay-info');
+            if (info) info.style.display = (value === 'VNPAY') ? 'flex' : 'none';
+
+            // Cập nhật nút submit
+            var btnText = document.getElementById('btn-text');
+            var btnIcon = document.getElementById('btn-icon');
+            if (value === 'VNPAY') {
+                btnText.textContent = 'Xác nhận & Thanh toán VNPAY';
+                btnIcon.textContent = '🏦';
+                document.getElementById('submit-btn').classList.add('co-submit-btn--vnpay');
             } else {
-                bankDetail.classList.remove('show');
+                btnText.textContent = 'Đặt hàng ngay';
+                btnIcon.textContent = '🔒';
+                document.getElementById('submit-btn').classList.remove('co-submit-btn--vnpay');
             }
         }
 
-        // live update bank content khi nhập SĐT
-        document.querySelector('input[name="Phone"]').addEventListener('input', function () {
-            var bc = document.getElementById('bank-content');
-            if (bc) bc.textContent = 'DH ' + (this.value || '[SĐT]');
+        // Loading state khi submit
+        document.getElementById('checkout-form').addEventListener('submit', function () {
+            var btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="co-spinner"></span> Đang xử lý...';
         });
     </script>
 }

@@ -1,0 +1,429 @@
+﻿@model Thuc_hanh_WEB.Models.Order
+
+@{
+    ViewBag.Title = "Chi tiết Đơn hàng #" + Model.OrderID.ToString("D8") + " - BookStore";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string statusLabel = Model.Status == "Pending"   ? "Chờ xác nhận"
+                       : Model.Status == "Confirmed" ? "Đã xác nhận"
+                       : Model.Status == "Cancelled" ? "Đã hủy"
+                       : (Model.Status ?? "");
+
+    string heroClass  = "od-hero-" + (Model.Status?.ToLower() ?? "pending");
+    string badgeClass = "badge-"   + (Model.Status?.ToLower() ?? "pending");
+
+    string payBadge = Model.PaymentStatus == "Paid"     ? "badge-paid"
+                    : Model.PaymentStatus == "Refunded" ? "badge-refunded"
+                    : "badge-unpaid";
+    string payLabel = Model.PaymentStatus == "Paid"     ? "Đã thanh toán"
+                    : Model.PaymentStatus == "Refunded" ? "Đã hoàn tiền"
+                    : "Chưa thanh toán";
+
+    string pmBadge = Model.PaymentMethod == "VNPAY"        ? "badge-vnpay"
+                   : Model.PaymentMethod == "BankTransfer"  ? "badge-bank"
+                   : "badge-cod";
+    string pmLabel = Model.PaymentMethod == "VNPAY"        ? "VNPAY"
+                   : Model.PaymentMethod == "BankTransfer"  ? "Chuyển khoản"
+                   : "Thanh toán khi nhận hàng (COD)";
+
+    string shipStatus = Model.ShippingStatus ?? "Pending";
+    int tlStep;
+    if (Model.Status == "Cancelled")      { tlStep = 0; }
+    else if (shipStatus == "Delivered")   { tlStep = 4; }
+    else if (shipStatus == "Shipping")    { tlStep = 3; }
+    else if (shipStatus == "Processing")  { tlStep = 2; }
+    else                                  { tlStep = 1; }
+
+    decimal itemsTotal  = Model.OrderDetails != null
+        ? Model.OrderDetails.Sum(od => od.Quantity * od.UnitPrice)
+        : 0m;
+    decimal shippingFee = Model.TotalAmount - itemsTotal;
+}
+
+@section styles {
+    <link href="@Url.Content("~/Content/css/order-detail.css")" rel="stylesheet" />
+}
+
+<div class="od-page">
+
+    @* BACK BAR *@
+    <div class="od-back-bar">
+        <a href="@Url.Action("MyOrders", "Order")" class="od-back-btn">
+            <i class="fas fa-arrow-left"></i> Danh sách đơn hàng
+        </a>
+        <div class="od-order-id">
+            Mã đơn: <span>#BOOK@(Model.OrderID.ToString("D8"))</span>
+        </div>
+    </div>
+
+    @* HERO BANNER *@
+    <div class="od-hero @heroClass">
+        <div class="od-hero-left">
+            <h2>
+                @if (Model.Status == "Cancelled")
+                {
+                    <i class="fas fa-times-circle" style="color:#fca5a5;margin-right:8px;"></i>
+                    <text>Đã hủy</text>
+                }
+                else if (shipStatus == "Delivered")
+                {
+                    <i class="fas fa-box-open" style="color:#86efac;margin-right:8px;"></i>
+                    <text>Đã giao thành công</text>
+                }
+                else if (shipStatus == "Shipping")
+                {
+                    <i class="fas fa-truck" style="color:#6ee7b7;margin-right:8px;"></i>
+                    <text>Đang giao hàng</text>
+                }
+                else if (Model.Status == "Confirmed")
+                {
+                    <i class="fas fa-check-circle" style="color:#67e8f9;margin-right:8px;"></i>
+                    <text>Đã xác nhận</text>
+                }
+                else
+                {
+                    <i class="fas fa-clock" style="color:var(--gold);margin-right:8px;"></i>
+                    <text>Chờ xác nhận</text>
+                }
+            </h2>
+            <p>
+                <i class="far fa-calendar-alt" style="margin-right:5px;"></i>
+                Đặt ngày @Model.OrderDate.ToString("HH:mm - dd/MM/yyyy")
+            </p>
+        </div>
+        <div class="od-hero-right">
+            <div class="od-hero-total">
+                @string.Format("{0:N0}đ", Model.TotalAmount)
+                <small>VNĐ</small>
+            </div>
+            <span class="od-badge @payBadge">
+                @if (Model.PaymentStatus == "Paid")
+                {
+                    <i class="fas fa-check"></i>
+                }
+                else if (Model.PaymentStatus == "Refunded")
+                {
+                    <i class="fas fa-undo"></i>
+                }
+                else
+                {
+                    <i class="fas fa-hourglass-half"></i>
+                }
+                @payLabel
+            </span>
+        </div>
+    </div>
+
+    @* 2-COL GRID *@
+    <div class="od-grid">
+
+        @* CUSTOMER INFO *@
+        <div class="od-card">
+            <div class="od-card-header">
+                <i class="fas fa-user-circle"></i> Thông tin người nhận
+            </div>
+            <div class="od-card-body">
+                <ul class="od-info-list">
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-user"></i></div>
+                        <div>
+                            <div class="od-info-label">Họ và tên</div>
+                            <div class="od-info-val">@Model.FullName</div>
+                        </div>
+                    </li>
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-phone-alt"></i></div>
+                        <div>
+                            <div class="od-info-label">Số điện thoại</div>
+                            <div class="od-info-val">@Model.Phone</div>
+                        </div>
+                    </li>
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <div class="od-info-label">Địa chỉ giao hàng</div>
+                            <div class="od-info-val">@Model.Address</div>
+                        </div>
+                    </li>
+                    @if (!string.IsNullOrWhiteSpace(Model.Note))
+                    {
+                        <li>
+                            <div class="od-note">
+                                <i class="fas fa-sticky-note"></i>
+                                @Model.Note
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        @* PAYMENT & STATUS *@
+        <div class="od-card">
+            <div class="od-card-header">
+                <i class="fas fa-credit-card"></i> Thanh toán &amp; Trạng thái
+            </div>
+            <div class="od-card-body">
+                <ul class="od-info-list">
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-wallet"></i></div>
+                        <div>
+                            <div class="od-info-label">Hình thức thanh toán</div>
+                            <div class="od-info-val">
+                                <span class="od-badge @pmBadge">@pmLabel</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-money-check-alt"></i></div>
+                        <div>
+                            <div class="od-info-label">Trạng thái thanh toán</div>
+                            <div class="od-info-val">
+                                <span class="od-badge @payBadge">@payLabel</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="od-info-row">
+                        <div class="od-info-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div>
+                            <div class="od-info-label">Trạng thái đơn hàng</div>
+                            <div class="od-info-val">
+                                <span class="od-badge @badgeClass">@statusLabel</span>
+                            </div>
+                        </div>
+                    </li>
+                    @if (!string.IsNullOrEmpty(Model.ShippingCode))
+                    {
+                        <li class="od-info-row">
+                            <div class="od-info-icon"><i class="fas fa-barcode"></i></div>
+                            <div>
+                                <div class="od-info-label">Mã vận đơn</div>
+                                <div class="od-info-val" style="font-family:monospace;letter-spacing:1px;">@Model.ShippingCode</div>
+                            </div>
+                        </li>
+                    }
+                    @if (Model.DeliveredDate.HasValue)
+                    {
+                        <li class="od-info-row">
+                            <div class="od-info-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div>
+                                <div class="od-info-label">Ngày giao thành công</div>
+                                <div class="od-info-val">@Model.DeliveredDate.Value.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @* SHIPPING TIMELINE *@
+    @if (Model.Status != "Cancelled")
+    {
+        <div class="od-card od-items-card">
+            <div class="od-card-header">
+                <i class="fas fa-route"></i> Hành trình đơn hàng
+            </div>
+            <div class="od-timeline">
+                @{
+                    var steps = new[]
+                    {
+                        new { Icon = "fa-clock",    Label = "Đặt hàng thành công",  Sub = "Đơn hàng đang chờ xác nhận"       },
+                        new { Icon = "fa-box",      Label = "Đang xử lý",            Sub = "Nhân viên đang xử lý đơn hàng"    },
+                        new { Icon = "fa-truck",    Label = "Đang giao hàng",        Sub = "Đơn hàng đang trên đường giao"    },
+                        new { Icon = "fa-box-open", Label = "Giao hàng thành công",  Sub = "Bạn đã nhận được hàng"            }
+                    };
+                }
+                @for (int s = 0; s < steps.Length; s++)
+                {
+                    string dotCls = (s + 1) < tlStep  ? "done"
+                                  : (s + 1) == tlStep ? "active"
+                                  : "";
+                    <div class="od-tl-step">
+                        <div class="od-tl-dot @dotCls">
+                            @if ((s + 1) < tlStep)
+                            {
+                                <i class="fas fa-check"></i>
+                            }
+                            else
+                            {
+                                <i class="fas @steps[s].Icon"></i>
+                            }
+                        </div>
+                        <div class="od-tl-content">
+                            <div class="od-tl-label">@steps[s].Label</div>
+                            <div class="od-tl-sub">@steps[s].Sub</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ITEMS LIST *@
+    <div class="od-card od-items-card">
+        <div class="od-card-header">
+            <i class="fas fa-book-open"></i> Sản phẩm trong đơn
+            (@(Model.OrderDetails != null ? Model.OrderDetails.Count : 0) quyển)
+        </div>
+
+        @if (Model.OrderDetails != null)
+        {
+            foreach (var item in Model.OrderDetails)
+            {
+                string img    = item.Book != null ? item.Book.CoverImage : null;
+                string imgSrc = img != null && img.StartsWith("/")
+                    ? img
+                    : Url.Content("~/Content/images/" + (img ?? "default.jpg"));
+
+                <div class="od-item-row">
+                    <div class="od-item-img">
+                        <img src="@imgSrc"
+                             alt="@(item.Book != null ? item.Book.Title : "")"
+                             onerror="this.src='@Url.Content("~/Content/images/default-book.jpg")'" />
+                    </div>
+                    <div class="od-item-info">
+                        <div class="od-item-title">@(item.Book != null ? item.Book.Title : "Sản phẩm")</div>
+                        <div class="od-item-unit">@string.Format("{0:N0}đ", item.UnitPrice) / quyển</div>
+                    </div>
+                    <div class="od-item-qty">x@(item.Quantity)</div>
+                    <div class="od-item-subtotal">@string.Format("{0:N0}đ", item.Quantity * item.UnitPrice)</div>
+                </div>
+            }
+        }
+
+        <div class="od-summary">
+            <div class="od-summary-row">
+                <span>Tiền sản phẩm</span>
+                <span>@string.Format("{0:N0}đ", itemsTotal)</span>
+            </div>
+            <div class="od-summary-row">
+                <span>Phí vận chuyển</span>
+                <span>@(shippingFee <= 0 ? "Miễn phí" : string.Format("{0:N0}đ", shippingFee))</span>
+            </div>
+            <div class="od-summary-row grand">
+                <span>Tổng thanh toán</span>
+                <span>@string.Format("{0:N0}đ", Model.TotalAmount)</span>
+            </div>
+        </div>
+    </div>
+
+    @* ACTION BUTTONS *@
+    <div class="od-actions">
+        <a href="@Url.Action("MyOrders", "Order")" class="od-btn od-btn-primary">
+            <i class="fas fa-list"></i> Về danh sách đơn
+        </a>
+
+        @if (Model.Status == "Pending")
+        {
+            <button type="button" class="od-btn od-btn-danger" onclick="showCancelModal()">
+                <i class="fas fa-times"></i> Hủy đơn hàng
+            </button>
+        }
+
+        @if (Model.ShippingStatus == "Delivered")
+        {
+            <button type="button" class="od-btn od-btn-gold" onclick="doReorder()">
+                <i class="fas fa-redo"></i> Mua lại
+            </button>
+        }
+    </div>
+
+</div>
+
+@* CANCEL MODAL *@
+<div id="cancelModal" class="od-modal">
+    <div class="od-modal-box">
+        <div class="od-modal-header">
+            <h3><i class="fas fa-exclamation-triangle" style="color:#dc3545;"></i> Xác nhận hủy đơn</h3>
+            <button class="od-modal-close" onclick="closeCancelModal()">&times;</button>
+        </div>
+        <div class="od-modal-body">
+            <p>Bạn có chắc chắn muốn hủy đơn hàng <strong>#BOOK@(Model.OrderID.ToString("D8"))</strong> không?</p>
+            <p style="color:#dc3545;font-size:0.85rem;">
+                <i class="fas fa-info-circle"></i> Hành động này không thể hoàn tác.
+            </p>
+        </div>
+        <div class="od-modal-footer">
+            <button class="od-btn od-mf-cancel" onclick="closeCancelModal()">
+                <i class="fas fa-times"></i> Giữ lại
+            </button>
+            <button class="od-btn od-mf-confirm" id="confirmCancelBtn">
+                <i class="fas fa-check"></i> Xác nhận hủy
+            </button>
+        </div>
+    </div>
+</div>
+
+<form id="antiForgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section scripts {
+    <script>
+        var orderId = @Model.OrderID;
+
+        function showCancelModal() {
+            document.getElementById('cancelModal').style.display = 'block';
+        }
+        function closeCancelModal() {
+            document.getElementById('cancelModal').style.display = 'none';
+        }
+
+        document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            fetch('@Url.Action("CancelOrder", "Order")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + orderId + '&__RequestVerificationToken=' + encodeURIComponent(token)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                closeCancelModal();
+                showToast(data.success ? 'success' : 'error', data.message);
+                if (data.success) {
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("MyOrders", "Order")';
+                    }, 1800);
+                }
+            })
+            .catch(function() {
+                closeCancelModal();
+                showToast('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        });
+
+        function doReorder() {
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            fetch('@Url.Action("Reorder", "Order")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + orderId + '&__RequestVerificationToken=' + encodeURIComponent(token)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                showToast(data.success ? 'success' : 'error', data.message);
+                if (data.success && data.redirectUrl) {
+                    setTimeout(function() { window.location.href = data.redirectUrl; }, 1600);
+                }
+            })
+            .catch(function() { showToast('error', 'Có lỗi xảy ra!'); });
+        }
+
+        window.onclick = function (e) {
+            if (e.target === document.getElementById('cancelModal')) { closeCancelModal(); }
+        };
+
+        function showToast(type, message) {
+            var t = document.createElement('div');
+            t.className = 'od-toast od-toast-' + type;
+            t.innerHTML =
+                '<div class="od-toast-icon"><i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i></div>' +
+                '<div><div class="od-toast-title">' + (type === 'success' ? 'Thành công!' : 'Có lỗi!') + '</div>' +
+                '<div class="od-toast-msg">' + message + '</div></div>' +
+                '<button class="od-toast-close" onclick="this.parentElement.remove()">&times;</button>';
+            document.body.appendChild(t);
+            setTimeout(function() { if (t.parentElement) { t.remove(); } }, 3500);
+        }
+    </script>
+}

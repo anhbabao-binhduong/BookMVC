@@ -1,0 +1,100 @@
+﻿@{
+    ViewBag.Title = "Thanh toán thất bại - BookStore";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .vnpfail-page {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+        background: #fef2f2;
+    }
+
+    .vnpfail-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0,0,0,.08);
+        max-width: 480px;
+        width: 100%;
+        padding: 48px 40px;
+        text-align: center;
+    }
+
+    .vnpfail-icon {
+        width: 80px;
+        height: 80px;
+        background: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin: 0 auto 24px;
+    }
+
+    .vnpfail-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #dc2626;
+        margin-bottom: 10px;
+    }
+
+    .vnpfail-msg {
+        font-size: 15px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 28px;
+    }
+
+    .vnpfail-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .vnpfail-btn {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity .2s;
+    }
+
+    .vnpfail-btn:hover { opacity: .85; }
+
+    .vnpfail-btn--primary {
+        background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+        color: #fff;
+    }
+
+    .vnpfail-btn--secondary {
+        background: #f3f4f6;
+        color: #374151;
+    }
+</style>
+
+<div class="vnpfail-page">
+    <div class="vnpfail-card">
+        <div class="vnpfail-icon">❌</div>
+        <div class="vnpfail-title">Thanh toán thất bại</div>
+        <div class="vnpfail-msg">
+            @ViewBag.Error
+            @if (ViewBag.OrderID != null)
+            {
+                <br /><small>Mã đơn hàng: <strong>#@ViewBag.OrderID</strong> đã bị hủy.</small>
+            }
+        </div>
+        <div class="vnpfail-actions">
+            <a href="@Url.Action("Index","Cart")" class="vnpfail-btn vnpfail-btn--primary">🛒 Quay lại giỏ hàng</a>
+            <a href="@Url.Action("MyOrders","Order")" class="vnpfail-btn vnpfail-btn--secondary">📋 Đơn hàng của tôi</a>
+        </div>
+    </div>
+</div>
+

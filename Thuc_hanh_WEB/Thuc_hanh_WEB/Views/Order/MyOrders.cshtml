@@ -374,14 +374,14 @@
         // Xử lý hủy đơn
         document.getElementById('confirmCancelBtn')?.addEventListener('click', function() {
             if (!currentOrderId) return;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 
             fetch('@Url.Action("CancelOrder", "Order")', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'id=' + currentOrderId
+                body: 'id=' + currentOrderId + '&__RequestVerificationToken=' + encodeURIComponent(token)
             })
             .then(response => response.json())
             .then(data => {
@@ -403,13 +403,13 @@
 
         // Xử lý mua lại
         function reorder(orderId) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
             fetch('@Url.Action("Reorder", "Order")', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'id=' + orderId
+                body: 'id=' + orderId + '&__RequestVerificationToken=' + encodeURIComponent(token)
             })
             .then(response => response.json())
             .then(data => {
@@ -463,15 +463,9 @@
         }
 
         // Xử lý token
-        document.addEventListener('DOMContentLoaded', function() {
-            // Thêm token nếu chưa có
-            if (!document.querySelector('input[name="__RequestVerificationToken"]')) {
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = '@Html.AntiForgeryToken().ToHtmlString()'.match(/value="([^"]+)"/)[1];
-                document.body.appendChild(tokenInput);
-            }
-        });
+        // Token được tạo sẵn thông qua thẻ form ẩn phía dưới
     </script>
+    <form id="antiForgeryForm" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
 }
