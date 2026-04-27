@@ -55,25 +55,33 @@
                                             {
                                                 <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Chờ xử lý</span>
                                             }
-                                            else if (order.Status == "Shipping")
-                                            {
-                                                <span class="badge bg-info text-white"><i class="fas fa-truck me-1"></i> Đang giao</span>
-                                            }
-                                            else if (order.Status == "Completed")
-                                            {
-                                                <span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i> Đã hoàn thành</span>
-                                            }
                                             else if (order.Status == "Cancelled")
                                             {
                                                 <span class="badge bg-danger text-white"><i class="fas fa-times-circle me-1"></i> Đã hủy</span>
                                             }
-                                            else 
+                                            else if (order.ShippingStatus == "Delivered")
                                             {
-                                                <span class="badge bg-secondary">@order.Status</span>
+                                                <span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i> Đã giao thành công</span>
+                                            }
+                                            else if (order.ShippingStatus == "Shipping")
+                                            {
+                                                <span class="badge bg-info text-white"><i class="fas fa-truck me-1"></i> Đang giao</span>
+                                            }
+                                            else if (order.ShippingStatus == "Processing")
+                                            {
+                                                <span class="badge bg-primary text-white"><i class="fas fa-box-open me-1"></i> Đang chuẩn bị</span>
+                                            }
+                                            else if (order.Status == "Completed")
+                                            {
+                                                <span class="badge bg-primary text-white"><i class="fas fa-check me-1"></i> Đã xác nhận</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@(string.IsNullOrEmpty(order.Status) ? "Không xác định" : order.Status)</span>
                                             }
                                         </td>
                                         <td class="text-center">
-                                            @if (order.PaymentStatus == "Paid" || order.Status == "Completed")
+                                            @if (order.PaymentStatus == "Paid" || order.ShippingStatus == "Delivered")
                                             {
                                                 <span class="badge border border-success text-success bg-success bg-opacity-10"><i class="fas fa-check me-1"></i> Đã Thu</span>
                                             }

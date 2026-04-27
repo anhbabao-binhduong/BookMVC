@@ -99,7 +99,11 @@ namespace Thuc_hanh_WEB.Areas.Admin.Controllers
                     CustomerName = o.FullName,
                     OrderDate = o.OrderDate.ToString("dd/MM/yyyy HH:mm"),
                     o.TotalAmount,
-                    StatusClass = o.Status == "Pending" ? "bg-warning" : (o.Status == "Completed" ? "bg-success" : "bg-info")
+                    StatusClass = o.Status == "Cancelled"
+                        ? "bg-danger"
+                        : (o.ShippingStatus == "Delivered"
+                            ? "bg-success"
+                            : (o.Status == "Pending" ? "bg-warning" : "bg-info"))
                 })
                 .ToList();
             ViewBag.RecentOrders = recentOrders;
@@ -109,7 +113,7 @@ namespace Thuc_hanh_WEB.Areas.Admin.Controllers
             ViewBag.TodayOrders = db.Orders.Count(o => o.OrderDate.Year == today.Year && o.OrderDate.Month == today.Month && o.OrderDate.Day == today.Day);
             ViewBag.MonthOrders = db.Orders.Count(o => o.OrderDate.Month == today.Month && o.OrderDate.Year == today.Year);
             ViewBag.PendingOrders = db.Orders.Count(o => o.Status == "Pending");
-            ViewBag.CompletedOrders = db.Orders.Count(o => o.Status == "Completed");
+            ViewBag.CompletedOrders = db.Orders.Count(o => o.ShippingStatus == "Delivered");
 
             // 7. Doanh thu hôm nay/tháng
             ViewBag.TodayRevenue = db.Orders
