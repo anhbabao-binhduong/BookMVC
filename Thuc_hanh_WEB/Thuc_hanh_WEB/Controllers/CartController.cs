@@ -105,12 +105,18 @@ namespace Thuc_hanh_WEB.Controllers
         if (Session["BUY_NOW"] != null)
         {
             var buyItem = Session["BUY_NOW"] as CartItem;
+
+            if (buyItem != null)
+            {
+                Session["SelectedBookIDs"] = new List<int> { buyItem.BookID };
+
+                decimal buySubtotal = buyItem.Price * buyItem.Quantity;
+                LoadCouponViewBag(buySubtotal);
+
+                return View(new List<CartItem> { buyItem });
+            }
+
             Session.Remove("BUY_NOW");
-
-            decimal buySubtotal = buyItem.Price * buyItem.Quantity;
-            LoadCouponViewBag(buySubtotal);
-
-            return View(new List<CartItem> { buyItem });
         }
 
         // ===== GIỎ HÀNG DB =====

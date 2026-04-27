@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <!-- Layout CSS -->
     <link href="~/Content/css/layout.css" rel="stylesheet" />
+    <link href="~/Content/css/book-images.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     @RenderSection("styles", false)
     @RenderSection("head", required: false)
@@ -386,7 +387,7 @@
                     <a href="/Book/Details/${item.BookID}" class="search-item">
                         <img src="${imageUrl}"
                              width="40" height="55"
-                             style="width:40px;height:55px;object-fit:cover;border-radius:6px;flex-shrink:0;"
+                             style="width:40px;height:55px;border-radius:6px;flex-shrink:0;"
                              onerror="this.src='/Content/images/default.jpg'">
                         <div class="search-item-info">
                             <span class="search-item-title">${escapeHtml(item.Title)}</span>

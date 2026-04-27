@@ -1,0 +1,140 @@
+/* ============================================================
+   BOOK IMAGES - Shared cover image rules across all pages
+   Goal: keep book covers fully visible, centered, and balanced
+   ============================================================ */
+
+.book-card-img-wrap,
+.cd-card__cover,
+.detail-img-box,
+.related-card .image-wrap,
+.cart-item__img,
+.co-order-item__img-wrap,
+.item-image,
+.book-cover-frame,
+.admin-book-cover-frame {
+    overflow: hidden;
+    background: linear-gradient(180deg, #f8f5ef 0%, #efe7db 100%);
+}
+
+.book-card-img-wrap img,
+.cd-card__cover img,
+.detail-img-box img,
+.related-card img,
+.cart-item__img img,
+.co-order-item__img,
+.item-image img,
+.search-item img,
+img.book-cover-img,
+.admin-book-cover-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+    object-position: center;
+    background: #fff;
+}
+
+.book-card-img-wrap img,
+.cd-card__cover img,
+.detail-img-box img,
+.related-card img {
+    padding: 6px;
+}
+
+.cart-item__img img,
+.co-order-item__img,
+.item-image img,
+.search-item img,
+img.book-cover-img,
+.admin-book-cover-frame img {
+    padding: 3px;
+}
+
+/* Smooth, subtle hover instead of oversized zoom */
+.book-card:hover .book-card-img-wrap img,
+.cd-card:hover .cd-card__cover img,
+.related-card:hover img,
+.cart-item:hover .cart-item__img img {
+    transform: scale(1.02) !important;
+}
+
+/* Consistent heights for common customer-facing cards */
+.cd-card__cover {
+    aspect-ratio: auto;
+    height: clamp(170px, 20vw, 220px);
+}
+
+.detail-img-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.related-card .image-wrap,
+.related-card img {
+    height: 220px;
+}
+
+/* Small thumbnails */
+.cart-item__img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.co-order-item__img-wrap,
+.item-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-item img {
+    width: 40px !important;
+    height: 55px !important;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+/* Admin helpers */
+.book-cover-frame,
+.admin-book-cover-frame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    background: linear-gradient(180deg, #f8f5ef 0%, #efe7db 100%);
+}
+
+.book-cover-frame--sm {
+    width: 50px;
+    height: 75px;
+}
+
+.book-cover-frame--md {
+    width: 90px;
+    height: 120px;
+}
+
+.book-cover-frame--lg {
+    width: 220px;
+    height: 320px;
+}
+
+.admin-book-cover-frame img,
+.book-cover-frame img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+@media (max-width: 768px) {
+    .cd-card__cover,
+    .related-card img {
+        height: 190px;
+    }
+
+    .detail-img-box {
+        min-height: 280px;
+    }
+}

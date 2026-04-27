@@ -591,10 +591,11 @@ namespace Thuc_hanh_WEB.Controllers
     private List<CartItem> GetCheckoutItems(int userId)
     {
         var selectedIds = Session["SelectedBookIDs"] as List<int>;
+        var buyNowItem = Session["BUY_NOW"] as CartItem;
 
         if (selectedIds != null && selectedIds.Any())
         {
-            return db.ShoppingCarts
+            var selectedItems = db.ShoppingCarts
                 .Where(c => c.UserID == userId && selectedIds.Contains(c.BookID))
                 .Select(c => new CartItem
                 {
@@ -605,10 +606,16 @@ namespace Thuc_hanh_WEB.Controllers
                     Quantity = c.Quantity
                 })
                 .ToList();
+
+            if (selectedItems.Any())
+                return selectedItems;
+
+            if (buyNowItem != null && selectedIds.Contains(buyNowItem.BookID))
+                return new List<CartItem> { buyNowItem };
         }
 
-        if (Session["BUY_NOW"] != null)
-            return new List<CartItem> { Session["BUY_NOW"] as CartItem };
+        if (buyNowItem != null)
+            return new List<CartItem> { buyNowItem };
 
         return null;
     }
