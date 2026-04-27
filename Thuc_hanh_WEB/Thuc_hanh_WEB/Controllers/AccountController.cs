@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
+using Thuc_hanh_WEB.Helpers;
 using Thuc_hanh_WEB.Models;
 using BCrypt.Net;
 namespace Thuc_hanh_WEB.Controllers

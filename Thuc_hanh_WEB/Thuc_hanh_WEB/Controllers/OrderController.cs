@@ -320,6 +320,7 @@ namespace Thuc_hanh_WEB.Controllers
             return RedirectToAction("Login", "Account");
 
         int userId = (int)Session["UserID"];
+        var user = db.Users.Find(userId);
 
         // ── Validate ─────────────────────────────────────────────
         if (string.IsNullOrWhiteSpace(model.FullName) ||
@@ -396,32 +397,57 @@ namespace Thuc_hanh_WEB.Controllers
         Session.Remove("CouponDiscount");
 
         // ── VNPAY: redirect sang cổng thanh toán ─────────────────────────────
-        if (model.PaymentMethod == "VNPAY")
+        // Với VNPAY chỉ gửi email sau khi thanh toán thành công ở action VnPayReturn
+        if (order.PaymentMethod == "VNPAY")
         {
-            string vnpUrl      = ConfigurationManager.AppSettings["vnp_Url"];
-            string vnpHashKey  = ConfigurationManager.AppSettings["vnp_HashSecret"];
-            string vnpTmnCode  = ConfigurationManager.AppSettings["vnp_TmnCode"];
-            string returnUrl   = Request.Url.GetLeftPart(UriPartial.Authority)
-                                 + Url.Action("VnPayReturn", "Order");
+            string vnpUrl = ConfigurationManager.AppSettings["vnp_Url"];
+            string vnpHashKey = ConfigurationManager.AppSettings["vnp_HashSecret"];
+            string vnpTmnCode = ConfigurationManager.AppSettings["vnp_TmnCode"];
+            string returnUrl = Request.Url.GetLeftPart(UriPartial.Authority)
+                               + Url.Action("VnPayReturn", "Order");
 
             var vnpay = new VnPayLibrary();
-            vnpay.AddRequestData("vnp_Version",    "2.1.0");
-            vnpay.AddRequestData("vnp_Command",    "pay");
-            vnpay.AddRequestData("vnp_TmnCode",    vnpTmnCode);
-            vnpay.AddRequestData("vnp_Amount",     ((long)(total * 100)).ToString());
-            vnpay.AddRequestData("vnp_CurrCode",   "VND");
-            vnpay.AddRequestData("vnp_BankCode",   "");
-            vnpay.AddRequestData("vnp_TxnRef",     order.OrderID.ToString());
-            vnpay.AddRequestData("vnp_OrderInfo",  "Thanh toan don hang #" + order.OrderID);
-            vnpay.AddRequestData("vnp_OrderType",  "other");
-            vnpay.AddRequestData("vnp_Locale",     "vn");
-            vnpay.AddRequestData("vnp_ReturnUrl",  returnUrl);
-            vnpay.AddRequestData("vnp_IpAddr",     Request.UserHostAddress ?? "127.0.0.1");
-            vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
-            vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+            vnpay.AddRequestData("vnp_Version", "2.1.0");
+            vnpay.AddRequestData("vnp_Command", "pay");
+            vnpay.AddRequestData("vnp_TmnCode", vnpTmnCode);
+            vnpay.AddRequestData("vnp_Amount", ((long)(total * 100)).ToString());
+            vnpay.AddRequestData("vnp_CurrCode", "VND");
+            vnpay.AddRequestData("vnp_BankCode", "");
+            vnpay.AddRequestData("vnp_TxnRef", order.OrderID.ToString());
+            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang #" + order.OrderID);
+            vnpay.AddRequestData("vnp_OrderType", "other");
+            vnpay.AddRequestData("vnp_Locale", "vn");
+            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
+            vnpay.AddRequestData("vnp_IpAddr", Request.UserHostAddress ?? "127.0.0.1");
+
+            TimeZoneInfo vietnamZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            DateTime vietnamTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamZone);
+            vnpay.AddRequestData("vnp_CreateDate", vietnamTime.ToString("yyyyMMddHHmmss"));
+            vnpay.AddRequestData("vnp_ExpireDate", vietnamTime.AddMinutes(15).ToString("yyyyMMddHHmmss"));
 
             string paymentUrl = vnpay.CreateRequestUrl(vnpUrl, vnpHashKey);
             return Redirect(paymentUrl);
+        }
+
+        // ── Gửi email xác nhận đơn hàng (COD/BankTransfer...) ───────────────
+        try
+        {
+            var toEmail = user?.Email;
+            if (!string.IsNullOrWhiteSpace(toEmail))
+            {
+                // Load lại chi tiết đơn + book để render email (tránh null OrderDetails/Book)
+                order.OrderDetails = db.OrderDetails
+                    .Include(od => od.Book)
+                    .Where(od => od.OrderID == order.OrderID)
+                    .ToList();
+
+                EmailHelper.SendOrderConfirmation(toEmail, order);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceError("SendOrderConfirmation failed. OrderID={0}. Error={1}", order.OrderID, ex);
+            // Không throw để tránh làm fail luồng đặt hàng
         }
 
         TempData["OrderSuccess"] = true;
@@ -471,6 +497,28 @@ namespace Thuc_hanh_WEB.Controllers
             order.PaymentStatus  = "Paid";
             order.Status         = "Pending";
             db.SaveChanges();
+
+            var paidUser = db.Users.Find(order.UserID);
+            if (paidUser != null && !string.IsNullOrWhiteSpace(paidUser.Email))
+            {
+                try
+                {
+                    order.OrderDetails = db.OrderDetails
+                        .Include(od => od.Book)
+                        .Where(od => od.OrderID == order.OrderID)
+                        .ToList();
+
+                    EmailHelper.SendOrderConfirmation(paidUser.Email, order);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.TraceError(
+                        "SendOrderConfirmation failed (VNPAY). OrderID={0}. Error={1}",
+                        order.OrderID,
+                        ex
+                    );
+                }
+            }
 
             TempData["OrderSuccess"]  = true;
             TempData["OrderID"]       = order.OrderID;
