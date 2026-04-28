@@ -2,40 +2,453 @@
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
     ViewBag.Title = "Dashboard";
 }
-<div class="container-fluid">
-    <h2><i class="fas fa-chart-line"></i> Tổng quan</h2>
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">📚 Sách</div>
-                <div class="card-body">
-                    <h3 class="card-title">@ViewBag.TotalBooks</h3>
+
+<style>
+    .stat-card-books { border-left: 4px solid #3b82f6; }
+    .stat-card-books .stat-icon { background: rgba(59,130,246,0.12); color: #3b82f6; }
+
+    .stat-card-orders { border-left: 4px solid #f59e0b; }
+    .stat-card-orders .stat-icon { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+    .stat-card-revenue { border-left: 4px solid #16a34a; }
+    .stat-card-revenue .stat-icon { background: rgba(22,163,74,0.12); color: #16a34a; }
+
+    .stat-card-users { border-left: 4px solid #8b5cf6; }
+    .stat-card-users .stat-icon { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+
+    .stat-card-pending { border-left: 4px solid #ef4444; }
+    .stat-card-pending .stat-icon { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+    .stat-card-completed { border-left: 4px solid #06b6d4; }
+    .stat-card-completed .stat-icon { background: rgba(6,182,212,0.12); color: #06b6d4; }
+
+    .welcome-banner {
+        background: linear-gradient(135deg, #1a2332 0%, #2e3f55 50%, #1a2332 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 180px; height: 180px;
+        background: rgba(201,168,76,0.12);
+        border-radius: 50%;
+    }
+
+    .welcome-banner::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; right: 60px;
+        width: 120px; height: 120px;
+        background: rgba(201,168,76,0.08);
+        border-radius: 50%;
+    }
+
+    .welcome-banner .book-deco {
+        position: absolute;
+        right: 32px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 72px;
+        color: rgba(201,168,76,0.18);
+        z-index: 1;
+    }
+
+    .welcome-banner h2 {
+        font-size: 22px; font-weight: 700;
+        color: #fff; margin-bottom: 6px;
+        position: relative; z-index: 2;
+    }
+
+    .welcome-banner p {
+        font-size: 14px;
+        color: rgba(255,255,255,0.65);
+        margin: 0; position: relative; z-index: 2;
+    }
+
+    .date-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(201,168,76,0.2);
+        border: 1px solid rgba(201,168,76,0.3);
+        color: #c9a84c;
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 12.5px; font-weight: 500;
+        margin-top: 14px;
+        position: relative; z-index: 2;
+    }
+
+    .quick-action-btn {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 20px 14px;
+        background: #fff;
+        border: 1.5px solid #e8ecf0;
+        border-radius: 12px;
+        text-decoration: none; color: #1a2332;
+        transition: all 0.25s ease;
+        gap: 10px; text-align: center; height: 100%;
+    }
+
+    .quick-action-btn:hover {
+        border-color: transparent;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.1);
+        color: #1a2332;
+    }
+
+    .quick-action-btn .qa-icon {
+        width: 46px; height: 46px; border-radius: 12px;
+        display: flex; align-items: center;
+        justify-content: center; font-size: 20px;
+    }
+
+    .quick-action-btn .qa-label { font-size: 12.5px; font-weight: 600; }
+
+    .qa-books .qa-icon  { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .qa-books:hover     { border-color: #3b82f6; }
+    .qa-category .qa-icon { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+    .qa-category:hover  { border-color: #8b5cf6; }
+    .qa-orders .qa-icon { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .qa-orders:hover    { border-color: #f59e0b; }
+    .qa-authors .qa-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+    .qa-authors:hover   { border-color: #10b981; }
+    .qa-publisher .qa-icon { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .qa-publisher:hover { border-color: #ef4444; }
+    .qa-coupon .qa-icon { background: rgba(6,182,212,0.1); color: #06b6d4; }
+    .qa-coupon:hover    { border-color: #06b6d4; }
+
+    .info-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 0; border-bottom: 1px solid #f0f2f5;
+    }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-row-label { font-size: 13px; color: #6c757d; display: flex; align-items: center; gap: 8px; }
+    .info-row-value { font-size: 13.5px; font-weight: 700; color: #1a2332; }
+</style>
+
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <h2>Chào mừng trở lại! 👋</h2>
+    <p>Tổng quan hệ thống quản lý <strong style="color:#c9a84c;">BookStore</strong> — Tất cả trong tầm tay bạn.</p>
+    <div class="date-badge">
+        <i class="fas fa-calendar-alt"></i>
+        <span id="currentDate">Đang tải...</span>
+    </div>
+    <div class="book-deco"><i class="fas fa-book-open"></i></div>
+</div>
+
+<!-- Stats Cards Row 1 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-books">
+            <div class="stat-icon"><i class="fas fa-book"></i></div>
+            <div class="stat-value">@(ViewBag.TotalBooks ?? 0)</div>
+            <div class="stat-label">Tổng đầu sách</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-users">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-value">@(ViewBag.TotalUsers ?? 0)</div>
+            <div class="stat-label">Người dùng</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-orders">
+            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-value">@(ViewBag.TotalOrders ?? 0)</div>
+            <div class="stat-label">Tổng đơn hàng</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-revenue">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-value" style="font-size:19px;">
+                @String.Format("{0:N0}", ViewBag.TotalRevenue ?? 0)<span style="font-size:11px;color:#6c757d;font-weight:600;">đ</span>
+            </div>
+            <div class="stat-label">Tổng doanh thu</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-pending">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-value">@(ViewBag.PendingOrders ?? 0)</div>
+            <div class="stat-label">Chờ xử lý</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="stat-card stat-card-completed">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-value">@(ViewBag.CompletedOrders ?? 0)</div>
+            <div class="stat-label">Đã giao thành công</div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Today/Month stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card" style="padding:18px 22px; display:flex; align-items:center; gap:16px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:rgba(37,99,235,0.1);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div>
+                <div style="font-size:12px;color:#6c757d;font-weight:500;">Đơn hôm nay</div>
+                <div style="font-size:22px;font-weight:700;color:#1a2332;line-height:1.2;">@(ViewBag.TodayOrders ?? 0)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card" style="padding:18px 22px; display:flex; align-items:center; gap:16px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:rgba(139,92,246,0.1);color:#8b5cf6;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div>
+                <div style="font-size:12px;color:#6c757d;font-weight:500;">Đơn tháng này</div>
+                <div style="font-size:22px;font-weight:700;color:#1a2332;line-height:1.2;">@(ViewBag.MonthOrders ?? 0)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card" style="padding:18px 22px; display:flex; align-items:center; gap:16px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:rgba(245,158,11,0.1);color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div>
+                <div style="font-size:12px;color:#6c757d;font-weight:500;">DT hôm nay</div>
+                <div style="font-size:18px;font-weight:700;color:#1a2332;line-height:1.2;">@String.Format("{0:N0}", ViewBag.TodayRevenue ?? 0)<span style="font-size:10px;color:#6c757d;">đ</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-card" style="padding:18px 22px; display:flex; align-items:center; gap:16px;">
+            <div style="width:46px;height:46px;border-radius:12px;background:rgba(22,163,74,0.1);color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div>
+                <div style="font-size:12px;color:#6c757d;font-weight:500;">DT tháng này</div>
+                <div style="font-size:18px;font-weight:700;color:#1a2332;line-height:1.2;">@String.Format("{0:N0}", ViewBag.MonthRevenue ?? 0)<span style="font-size:10px;color:#6c757d;">đ</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Recent orders + Quick actions -->
+<div class="row g-4">
+    <!-- Recent Orders (from anonymous type) -->
+    <div class="col-lg-8">
+        <div class="admin-table-card">
+            <div class="card-header-custom">
+                <h5>
+                    <span style="width:34px;height:34px;border-radius:9px;background:rgba(245,158,11,0.12);color:#f59e0b;display:inline-flex;align-items:center;justify-content:center;font-size:15px;">
+                        <i class="fas fa-shopping-bag"></i>
+                    </span>
+                    Đơn hàng gần đây
+                </h5>
+                <a href="@Url.Action("Index", "Order", new { area = "Admin" })"
+                   class="btn btn-sm btn-outline-secondary"
+                   style="font-size:12px;border-radius:7px;">
+                    Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            @if (ViewBag.RecentOrders != null)
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Mã ĐH</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center pe-4">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (Thuc_hanh_WEB.Models.ViewModels.AdminRecentOrderViewModel order in (IEnumerable<Thuc_hanh_WEB.Models.ViewModels.AdminRecentOrderViewModel>)ViewBag.RecentOrders)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold" style="color:#1a2332;">#@order.OrderID</span>
+                                    </td>
+                                    <td>
+                                        <div style="font-size:13.5px;font-weight:600;color:#1a2332;">@order.CustomerName</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-size:13px;color:#374151;">@order.OrderDate</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold" style="color:#dc2626;font-size:13.5px;">
+                                            @String.Format("{0:N0}", order.TotalAmount)<span style="font-size:11px;">đ</span>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        @{
+                                            string statusClass = order.StatusClass;
+                                            string statusText = statusClass == "bg-danger" ? "Đã hủy"
+                                                : statusClass == "bg-success" ? "Đã giao"
+                                                : statusClass == "bg-warning" ? "Chờ xử lý"
+                                                : "Đang xử lý";
+                                            string badgeBg = statusClass == "bg-danger"   ? "rgba(239,68,68,0.1)"
+                                                : statusClass == "bg-success" ? "rgba(22,163,74,0.1)"
+                                                : statusClass == "bg-warning" ? "rgba(245,158,11,0.12)"
+                                                : "rgba(37,99,235,0.1)";
+                                            string badgeColor = statusClass == "bg-danger"   ? "#dc2626"
+                                                : statusClass == "bg-success" ? "#16a34a"
+                                                : statusClass == "bg-warning" ? "#d97706"
+                                                : "#2563eb";
+                                            string badgeBorder = statusClass == "bg-danger"   ? "rgba(239,68,68,0.2)"
+                                                : statusClass == "bg-success" ? "rgba(22,163,74,0.2)"
+                                                : statusClass == "bg-warning" ? "rgba(245,158,11,0.3)"
+                                                : "rgba(37,99,235,0.2)";
+                                        }
+                                        <span class="badge"
+                                              style="background:@badgeBg;color:@badgeColor;border:1px solid @badgeBorder;">
+                                            @statusText
+                                        </span>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <a href="@Url.Action("Details", "Order", new { area = "Admin", id = order.OrderID })"
+                                           class="btn btn-sm"
+                                           style="background:rgba(37,99,235,0.08);color:#2563eb;border:1px solid rgba(37,99,235,0.2);border-radius:7px;padding:5px 12px;font-size:12px;">
+                                            <i class="fas fa-eye me-1"></i>Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5" style="color:#9ca3af;">
+                    <i class="fas fa-inbox" style="font-size:42px;opacity:0.4;display:block;margin-bottom:12px;"></i>
+                    <div style="font-size:14px;font-weight:500;">Chưa có đơn hàng nào</div>
+                    <div style="font-size:13px;margin-top:4px;">Đơn hàng sẽ hiển thị ở đây khi có khách đặt.</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Actions + Info -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="admin-table-card mb-4">
+            <div class="card-header-custom">
+                <h5>
+                    <span style="width:34px;height:34px;border-radius:9px;background:rgba(139,92,246,0.12);color:#8b5cf6;display:inline-flex;align-items:center;justify-content:center;font-size:15px;">
+                        <i class="fas fa-bolt"></i>
+                    </span>
+                    Truy cập nhanh
+                </h5>
+            </div>
+            <div style="padding:16px;">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="@Url.Action("Create", "Book", new { area = "Admin" })" class="quick-action-btn qa-books">
+                            <div class="qa-icon"><i class="fas fa-plus-circle"></i></div>
+                            <div class="qa-label">Thêm Sách</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Order", new { area = "Admin" })" class="quick-action-btn qa-orders">
+                            <div class="qa-icon"><i class="fas fa-shopping-bag"></i></div>
+                            <div class="qa-label">Đơn hàng</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Category", new { area = "Admin" })" class="quick-action-btn qa-category">
+                            <div class="qa-icon"><i class="fas fa-tags"></i></div>
+                            <div class="qa-label">Danh mục</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Author", new { area = "Admin" })" class="quick-action-btn qa-authors">
+                            <div class="qa-icon"><i class="fas fa-feather-alt"></i></div>
+                            <div class="qa-label">Tác giả</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Publisher", new { area = "Admin" })" class="quick-action-btn qa-publisher">
+                            <div class="qa-icon"><i class="fas fa-building"></i></div>
+                            <div class="qa-label">NXB</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Coupon", new { area = "Admin" })" class="quick-action-btn qa-coupon">
+                            <div class="qa-icon"><i class="fas fa-ticket-alt"></i></div>
+                            <div class="qa-label">Mã KM</div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">👥 Người dùng</div>
-                <div class="card-body">
-                    <h3 class="card-title">@ViewBag.TotalUsers</h3>
-                </div>
+
+        <!-- System Info -->
+        <div class="admin-table-card">
+            <div class="card-header-custom">
+                <h5>
+                    <span style="width:34px;height:34px;border-radius:9px;background:rgba(22,163,74,0.12);color:#16a34a;display:inline-flex;align-items:center;justify-content:center;font-size:15px;">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
+                    Tổng quan nhanh
+                </h5>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning mb-3">
-                <div class="card-header">🛒 Đơn hàng</div>
-                <div class="card-body">
-                    <h3 class="card-title">@ViewBag.TotalOrders</h3>
+            <div style="padding:16px 20px;">
+                <div class="info-row">
+                    <span class="info-row-label">
+                        <i class="fas fa-circle" style="font-size:8px;color:#16a34a;"></i>
+                        Trạng thái hệ thống
+                    </span>
+                    <span style="font-size:12.5px;font-weight:600;color:#16a34a;background:rgba(22,163,74,0.1);padding:3px 10px;border-radius:20px;">Hoạt động</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-danger mb-3">
-                <div class="card-header">💰 Doanh thu</div>
-                <div class="card-body">
-                    <h3 class="card-title">@String.Format("{0:N0} VNĐ", ViewBag.TotalRevenue)</h3>
+                <div class="info-row">
+                    <span class="info-row-label">
+                        <i class="fas fa-book" style="color:#3b82f6;font-size:12px;"></i>
+                        Tổng đầu sách
+                    </span>
+                    <span class="info-row-value">@(ViewBag.TotalBooks ?? 0)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">
+                        <i class="fas fa-users" style="color:#8b5cf6;font-size:12px;"></i>
+                        Người dùng
+                    </span>
+                    <span class="info-row-value">@(ViewBag.TotalUsers ?? 0)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">
+                        <i class="fas fa-clock" style="color:#ef4444;font-size:12px;"></i>
+                        Chờ xử lý
+                    </span>
+                    <span class="info-row-value" style="color:#ef4444;">@(ViewBag.PendingOrders ?? 0)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">
+                        <i class="fas fa-check-circle" style="color:#16a34a;font-size:12px;"></i>
+                        Đã giao thành công
+                    </span>
+                    <span class="info-row-value" style="color:#16a34a;">@(ViewBag.CompletedOrders ?? 0)</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        var days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+        var months = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6',
+            'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'];
+        var now = new Date();
+        document.getElementById('currentDate').textContent =
+            days[now.getDay()] + ', ngày ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+    })();
+</script>

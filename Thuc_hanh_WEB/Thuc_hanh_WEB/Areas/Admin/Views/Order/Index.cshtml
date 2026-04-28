@@ -4,11 +4,90 @@
     ViewBag.Title = "Quản lý Đơn hàng";
 }
 
+<style>
+    .page-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    /* Mobile card */
+    .order-mobile-card { display: none; }
+
+    @@media (max-width: 767.98px) {
+        .order-desktop-table { display: none !important; }
+        .order-mobile-card   { display: block; }
+
+        .order-item-card {
+            background: #fff;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: .9rem 1rem;
+            margin-bottom: .75rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+
+        .order-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .order-item-id {
+            font-weight: 700;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .order-item-date {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .order-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+        }
+
+        .order-item-phone {
+            font-size: 12.5px;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .order-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .order-item-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #dc3545;
+        }
+    }
+
+    @@media (min-width: 768px) {
+        .order-desktop-table { display: block !important; }
+    }
+</style>
+
 <div class="row justify-content-center mt-3">
-    <div class="col-lg-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h4 class="mb-0 text-primary"><i class="fas fa-shopping-cart me-2"></i>Danh sách Đơn hàng</h4>
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="page-header-bar">
+                    <h4 class="mb-0 text-primary"><i class="fas fa-shopping-cart me-2"></i>Danh sách Đơn hàng</h4>
+                </div>
             </div>
             <div class="card-body p-0">
                 @if (Model == null || !Model.Any())
@@ -21,17 +100,18 @@
                 }
                 else
                 {
-                    <div class="table-responsive">
+                    /* ---- DESKTOP TABLE ---- */
+                    <div class="table-responsive order-desktop-table">
                         <table class="table table-hover table-striped mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-4 text-center" style="width: 8%;">Mã ĐH</th>
-                                    <th style="width: 15%;">Ngày đặt</th>
-                                    <th style="width: 22%;">Khách hàng</th>
-                                    <th style="width: 15%;">Tổng tiền</th>
-                                    <th style="width: 15%; text-align: center;">Trạng thái</th>
-                                    <th style="width: 15%; text-align: center;">Thanh toán</th>
-                                    <th class="text-center pe-4" style="width: 10%;">Thao tác</th>
+                                    <th class="ps-4 text-center" style="width:8%;">Mã ĐH</th>
+                                    <th style="width:13%;">Ngày đặt</th>
+                                    <th style="width:22%;">Khách hàng</th>
+                                    <th style="width:14%;">Tổng tiền</th>
+                                    <th class="text-center" style="width:16%;">Trạng thái</th>
+                                    <th class="text-center d-none d-lg-table-cell" style="width:15%;">Thanh toán</th>
+                                    <th class="text-center pe-4" style="width:12%;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -48,7 +128,7 @@
                                             <div class="small text-muted"><i class="fas fa-phone-alt me-1 opacity-75"></i>@order.Phone</div>
                                         </td>
                                         <td>
-                                            <span class="fw-bold text-danger">@String.Format("{0:N0}", order.TotalAmount) <span class="small text-decoration-underline">đ</span></span>
+                                            <span class="fw-bold text-danger text-nowrap">@String.Format("{0:N0}", order.TotalAmount) <span class="small text-decoration-underline">đ</span></span>
                                         </td>
                                         <td class="text-center">
                                             @if (order.Status == "Pending")
@@ -61,7 +141,7 @@
                                             }
                                             else if (order.ShippingStatus == "Delivered")
                                             {
-                                                <span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i> Đã giao thành công</span>
+                                                <span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i> Đã giao</span>
                                             }
                                             else if (order.ShippingStatus == "Shipping")
                                             {
@@ -69,18 +149,18 @@
                                             }
                                             else if (order.ShippingStatus == "Processing")
                                             {
-                                                <span class="badge bg-primary text-white"><i class="fas fa-box-open me-1"></i> Đang chuẩn bị</span>
+                                                <span class="badge bg-primary text-white"><i class="fas fa-box-open me-1"></i> Chuẩn bị</span>
                                             }
                                             else if (order.Status == "Completed")
                                             {
-                                                <span class="badge bg-primary text-white"><i class="fas fa-check me-1"></i> Đã xác nhận</span>
+                                                <span class="badge bg-primary text-white"><i class="fas fa-check me-1"></i> Xác nhận</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary">@(string.IsNullOrEmpty(order.Status) ? "Không xác định" : order.Status)</span>
+                                                <span class="badge bg-secondary">@(string.IsNullOrEmpty(order.Status) ? "N/A" : order.Status)</span>
                                             }
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center d-none d-lg-table-cell">
                                             @if (order.PaymentStatus == "Paid" || order.ShippingStatus == "Delivered")
                                             {
                                                 <span class="badge border border-success text-success bg-success bg-opacity-10"><i class="fas fa-check me-1"></i> Đã Thu</span>
@@ -103,6 +183,53 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+
+                    /* ---- MOBILE CARDS ---- */
+                    <div class="order-mobile-card p-3">
+                        @foreach (var order in Model)
+                        {
+                            <div class="order-item-card">
+                                <div class="order-item-header">
+                                    <span class="order-item-id">#@order.OrderID</span>
+                                    <span class="order-item-date">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <div class="order-item-name">@order.FullName</div>
+                                <div class="order-item-phone"><i class="fas fa-phone-alt me-1 opacity-75"></i>@order.Phone</div>
+                                <div class="order-item-footer">
+                                    <span class="order-item-price">@String.Format("{0:N0}", order.TotalAmount) đ</span>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        @if (order.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chờ xử lý</span>
+                                        }
+                                        else if (order.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Đã hủy</span>
+                                        }
+                                        else if (order.ShippingStatus == "Delivered")
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Đã giao</span>
+                                        }
+                                        else if (order.ShippingStatus == "Shipping")
+                                        {
+                                            <span class="badge bg-info"><i class="fas fa-truck me-1"></i>Đang giao</span>
+                                        }
+                                        else if (order.ShippingStatus == "Processing")
+                                        {
+                                            <span class="badge bg-primary"><i class="fas fa-box-open me-1"></i>Chuẩn bị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@(string.IsNullOrEmpty(order.Status) ? "N/A" : order.Status)</span>
+                                        }
+                                        <a href="@Url.Action("Details", new { id = order.OrderID })" class="btn btn-sm btn-outline-info py-0">
+                                            <i class="fas fa-eye me-1"></i>Chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
             </div>

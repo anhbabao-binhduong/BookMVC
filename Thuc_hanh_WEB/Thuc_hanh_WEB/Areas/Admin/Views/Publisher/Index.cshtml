@@ -4,14 +4,69 @@
     ViewBag.Title = "Quản lý Nhà xuất bản";
 }
 
+<style>
+    .page-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    /* Mobile card */
+    .pub-mobile-card { display: none; }
+
+    @@media (max-width: 767.98px) {
+        .pub-desktop-table { display: none !important; }
+        .pub-mobile-card   { display: block; }
+
+        .pub-item-card {
+            background: #fff;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: .9rem 1rem;
+            margin-bottom: .7rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+
+        .pub-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+
+        .pub-item-meta {
+            font-size: 12.5px;
+            color: #666;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pub-item-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+    }
+
+    @@media (min-width: 768px) {
+        .pub-desktop-table { display: block !important; }
+    }
+</style>
+
 <div class="row justify-content-center mt-3">
-    <div class="col-lg-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h4 class="mb-0 text-primary"><i class="far fa-building me-2"></i>Danh sách Nhà xuất bản</h4>
-                <a href="@Url.Action("Create")" class="btn btn-primary shadow-sm">
-                    <i class="fas fa-plus me-1"></i> Thêm NXB Mới
-                </a>
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="page-header-bar">
+                    <h4 class="mb-0 text-primary"><i class="far fa-building me-2"></i>Danh sách Nhà xuất bản</h4>
+                    <a href="@Url.Action("Create")" class="btn btn-primary shadow-sm">
+                        <i class="fas fa-plus me-1"></i> Thêm NXB Mới
+                    </a>
+                </div>
             </div>
             <div class="card-body p-0">
                 @if (Model == null || !Model.Any())
@@ -24,16 +79,17 @@
                 }
                 else
                 {
-                    <div class="table-responsive">
+                    /* ---- DESKTOP TABLE ---- */
+                    <div class="table-responsive pub-desktop-table">
                         <table class="table table-hover table-striped mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-4 text-center" style="width: 5%;">ID</th>
-                                    <th style="width: 25%;">Tên NXB</th>
-                                    <th style="width: 30%;">Địa chỉ</th>
-                                    <th style="width: 15%;">Điện thoại</th>
-                                    <th style="width: 15%;">Email</th>
-                                    <th class="text-center pe-4" style="width: 10%;">Thao tác</th>
+                                    <th class="ps-4 text-center" style="width:5%;">ID</th>
+                                    <th style="width:25%;">Tên NXB</th>
+                                    <th class="d-none d-md-table-cell" style="width:28%;">Địa chỉ</th>
+                                    <th class="d-none d-lg-table-cell" style="width:15%;">Điện thoại</th>
+                                    <th class="d-none d-lg-table-cell" style="width:17%;">Email</th>
+                                    <th class="text-center pe-4" style="width:10%;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,17 +100,21 @@
                                         <td class="fw-semibold text-dark">
                                             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">@pub.Name</span>
                                         </td>
-                                        <td class="text-muted"><i class="fas fa-map-marker-alt me-1 text-danger opacity-75"></i>@pub.Address</td>
-                                        <td>
+                                        <td class="text-muted d-none d-md-table-cell">
+                                            <i class="fas fa-map-marker-alt me-1 text-danger opacity-75"></i>@pub.Address
+                                        </td>
+                                        <td class="d-none d-lg-table-cell">
                                             @if (!string.IsNullOrEmpty(pub.Phone))
                                             {
                                                 <i class="fas fa-phone-alt me-1 text-success opacity-75 small"></i>@pub.Phone
                                             }
                                         </td>
-                                        <td>
+                                        <td class="d-none d-lg-table-cell">
                                             @if (!string.IsNullOrEmpty(pub.Email))
                                             {
-                                                <a href="mailto:@pub.Email" class="text-decoration-none"><i class="far fa-envelope me-1 opacity-75 small"></i>@pub.Email</a>
+                                                <a href="mailto:@pub.Email" class="text-decoration-none text-break">
+                                                    <i class="far fa-envelope me-1 opacity-75 small"></i>@pub.Email
+                                                </a>
                                             }
                                         </td>
                                         <td class="text-center pe-4">
@@ -67,6 +127,35 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+
+                    /* ---- MOBILE CARDS ---- */
+                    <div class="pub-mobile-card p-3">
+                        @foreach (var pub in Model)
+                        {
+                            <div class="pub-item-card">
+                                <div class="pub-item-name">
+                                    <span class="badge bg-secondary text-white me-1 fw-normal">#@pub.PublisherID</span>
+                                    @pub.Name
+                                </div>
+                                @if (!string.IsNullOrEmpty(pub.Address))
+                                {
+                                    <div class="pub-item-meta"><i class="fas fa-map-marker-alt text-danger opacity-75"></i> @pub.Address</div>
+                                }
+                                @if (!string.IsNullOrEmpty(pub.Phone))
+                                {
+                                    <div class="pub-item-meta"><i class="fas fa-phone-alt text-success opacity-75"></i> @pub.Phone</div>
+                                }
+                                @if (!string.IsNullOrEmpty(pub.Email))
+                                {
+                                    <div class="pub-item-meta"><i class="far fa-envelope opacity-75"></i> @pub.Email</div>
+                                }
+                                <div class="pub-item-actions">
+                                    <a href="@Url.Action("Edit", new { id = pub.PublisherID })" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>Sửa</a>
+                                    <a href="@Url.Action("Delete", new { id = pub.PublisherID })" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt me-1"></i>Xóa</a>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
             </div>

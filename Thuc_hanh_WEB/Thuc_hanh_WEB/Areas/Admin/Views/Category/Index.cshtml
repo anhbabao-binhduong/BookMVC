@@ -4,48 +4,132 @@
     ViewBag.Title = "Quản lý Danh mục";
 }
 
+<style>
+    .page-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    /* Mobile card */
+    .cat-mobile-card { display: none; }
+
+    @@media (max-width: 575.98px) {
+        .cat-desktop-table { display: none !important; }
+        .cat-mobile-card   { display: block; }
+
+        .cat-item-card {
+            background: #fff;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: .85rem 1rem;
+            margin-bottom: .65rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+
+        .cat-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .cat-item-desc {
+            font-size: 12.5px;
+            color: #888;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .cat-item-actions {
+            display: flex;
+            gap: 6px;
+        }
+    }
+
+    @@media (min-width: 576px) {
+        .cat-desktop-table { display: block !important; }
+    }
+</style>
+
 <div class="row justify-content-center mt-3">
-    <div class="col-lg-10">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h4 class="mb-0 text-primary"><i class="fas fa-folder-open me-2"></i>Danh sách Danh mục</h4>
-                <a href="@Url.Action("Create")" class="btn btn-primary shadow-sm">
-                    <i class="fas fa-plus me-1"></i> Thêm Danh mục
-                </a>
+    <div class="col-12 col-lg-10">
+        <div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="page-header-bar">
+                    <h4 class="mb-0 text-primary"><i class="fas fa-folder-open me-2"></i>Danh sách Danh mục</h4>
+                    <a href="@Url.Action("Create")" class="btn btn-primary shadow-sm">
+                        <i class="fas fa-plus me-1"></i> Thêm Danh mục
+                    </a>
+                </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4" style="width: 10%;">ID</th>
-                                <th style="width: 30%;">Tên danh mục</th>
-                                <th style="width: 40%;">Mô tả</th>
-                                <th class="text-center pe-4" style="width: 20%;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="p-5 text-center">
+                        <i class="fas fa-folder fa-3x text-muted mb-3 opacity-50"></i>
+                        <h5 class="text-muted">Chưa có danh mục nào</h5>
+                    </div>
+                }
+                else
+                {
+                    /* ---- DESKTOP TABLE ---- */
+                    <div class="table-responsive cat-desktop-table">
+                        <table class="table table-hover table-striped mb-0 align-middle">
+                            <thead class="table-light">
                                 <tr>
-                                    <td class="ps-4 fw-bold text-secondary">#@item.CategoryID</td>
-                                    <td class="fw-semibold text-dark">
-                                        <span class="badge bg-secondary text-white bg-opacity-75 border border-secondary p-2">@item.CategoryName</span>
-                                    </td>
-                                    <td class="text-muted text-truncate" style="max-width: 250px;" title="@item.Description">
-                                        @(string.IsNullOrEmpty(item.Description) ? "Không có mô tả" : item.Description)
-                                    </td>
-                                    <td class="text-center pe-4">
-                                        <div class="btn-group shadow-sm" role="group">
-                                            <a href="@Url.Action("Edit", new { id = item.CategoryID })" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
-                                            <a href="@Url.Action("Delete", new { id = item.CategoryID })" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
-                                        </div>
-                                    </td>
+                                    <th class="ps-4" style="width:10%;">ID</th>
+                                    <th style="width:30%;">Tên danh mục</th>
+                                    <th class="d-none d-md-table-cell" style="width:45%;">Mô tả</th>
+                                    <th class="text-center pe-4" style="width:15%;">Thao tác</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-secondary">#@item.CategoryID</td>
+                                        <td class="fw-semibold text-dark">
+                                            <span class="badge bg-secondary text-white bg-opacity-75 border border-secondary p-2">@item.CategoryName</span>
+                                        </td>
+                                        <td class="text-muted d-none d-md-table-cell" style="max-width:280px;" title="@item.Description">
+                                            @(string.IsNullOrEmpty(item.Description) ? "Không có mô tả" : item.Description)
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group shadow-sm" role="group">
+                                                <a href="@Url.Action("Edit", new { id = item.CategoryID })" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+                                                <a href="@Url.Action("Delete", new { id = item.CategoryID })" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    /* ---- MOBILE CARDS ---- */
+                    <div class="cat-mobile-card p-3">
+                        @foreach (var item in Model)
+                        {
+                            <div class="cat-item-card">
+                                <div class="cat-item-name">
+                                    <span class="badge bg-secondary text-white me-1">#@item.CategoryID</span>
+                                    @item.CategoryName
+                                </div>
+                                <div class="cat-item-desc">@(string.IsNullOrEmpty(item.Description) ? "Không có mô tả" : item.Description)</div>
+                                <div class="cat-item-actions">
+                                    <a href="@Url.Action("Edit", new { id = item.CategoryID })" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>Sửa</a>
+                                    <a href="@Url.Action("Delete", new { id = item.CategoryID })" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt me-1"></i>Xóa</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
     </div>

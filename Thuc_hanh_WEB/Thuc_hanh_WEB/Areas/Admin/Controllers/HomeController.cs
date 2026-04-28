@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 using Thuc_hanh_WEB.Models;
+using Thuc_hanh_WEB.Models.ViewModels;
 
 namespace Thuc_hanh_WEB.Areas.Admin.Controllers
 {
@@ -94,11 +95,12 @@ namespace Thuc_hanh_WEB.Areas.Admin.Controllers
                 .OrderByDescending(o => o.OrderDate)
                 .Take(5)
                 .ToList()
-                .Select(o => new {
-                    o.OrderID,
+                .Select(o => new AdminRecentOrderViewModel
+                {
+                    OrderID = o.OrderID,
                     CustomerName = o.FullName,
                     OrderDate = o.OrderDate.ToString("dd/MM/yyyy HH:mm"),
-                    o.TotalAmount,
+                    TotalAmount = o.TotalAmount,
                     StatusClass = o.Status == "Cancelled"
                         ? "bg-danger"
                         : (o.ShippingStatus == "Delivered"

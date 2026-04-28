@@ -5,11 +5,13 @@
 }
 
 <style>
-    .page-header {
+    .page-header-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: .75rem;
+        margin-bottom: 1.25rem;
     }
 
     .page-title {
@@ -19,12 +21,12 @@
         margin: 0;
     }
 
-        .page-title span {
-            font-size: 13px;
-            font-weight: 400;
-            color: #888;
-            margin-left: 8px;
-        }
+    .page-title span {
+        font-size: 13px;
+        font-weight: 400;
+        color: #888;
+        margin-left: 8px;
+    }
 
     .btn-add {
         display: inline-flex;
@@ -39,17 +41,11 @@
         font-weight: 500;
         text-decoration: none;
         transition: background 0.15s, transform 0.1s;
+        white-space: nowrap;
     }
 
-        .btn-add:hover {
-            background: #534AB7;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .btn-add:active {
-            transform: scale(0.98);
-        }
+    .btn-add:hover { background: #534AB7; color: #fff; text-decoration: none; }
+    .btn-add:active { transform: scale(0.98); }
 
     .data-table-wrap {
         background: #fff;
@@ -65,62 +61,39 @@
         font-size: 13.5px;
     }
 
-        .data-table thead tr {
-            background: #f7f7fb;
-            border-bottom: 1px solid #ebebf0;
-        }
-
-        .data-table thead th {
-            padding: 12px 16px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: #888;
-            white-space: nowrap;
-        }
-
-        .data-table tbody tr {
-            border-bottom: 1px solid #f3f3f7;
-            transition: background 0.1s;
-        }
-
-            .data-table tbody tr:last-child {
-                border-bottom: none;
-            }
-
-            .data-table tbody tr:hover {
-                background: #fafafd;
-            }
-
-        .data-table tbody td {
-            padding: 13px 16px;
-            color: #2d2d3a;
-            vertical-align: middle;
-        }
-
-    .td-id {
-        font-size: 12px;
-        color: #aaa;
-        font-weight: 500;
+    .data-table thead tr {
+        background: #f7f7fb;
+        border-bottom: 1px solid #ebebf0;
     }
 
-    .author-name {
-        font-weight: 500;
-        color: #1a1a2e;
-    }
-
-    .td-bio {
-        color: #777;
-        font-size: 13px;
-        max-width: 200px;
-    }
-
-    .td-date {
-        font-size: 12.5px;
-        color: #666;
+    .data-table thead th {
+        padding: 12px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #888;
         white-space: nowrap;
     }
+
+    .data-table tbody tr {
+        border-bottom: 1px solid #f3f3f7;
+        transition: background 0.1s;
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafafd; }
+
+    .data-table tbody td {
+        padding: 13px 16px;
+        color: #2d2d3a;
+        vertical-align: middle;
+    }
+
+    .td-id { font-size: 12px; color: #aaa; font-weight: 500; }
+    .author-name { font-weight: 500; color: #1a1a2e; }
+    .td-bio { color: #777; font-size: 13px; max-width: 200px; }
+    .td-date { font-size: 12.5px; color: #666; white-space: nowrap; }
 
     .country-badge {
         display: inline-block;
@@ -132,10 +105,7 @@
         font-weight: 500;
     }
 
-    .action-group {
-        display: flex;
-        gap: 6px;
-    }
+    .action-group { display: flex; gap: 6px; }
 
     .btn-edit, .btn-delete {
         display: inline-flex;
@@ -148,6 +118,7 @@
         text-decoration: none;
         transition: opacity 0.15s, transform 0.1s;
         border: none;
+        white-space: nowrap;
     }
 
     .btn-edit {
@@ -156,11 +127,7 @@
         border: 1px solid #f0d898;
     }
 
-        .btn-edit:hover {
-            background: #fef0d0;
-            color: #b07a10;
-            text-decoration: none;
-        }
+    .btn-edit:hover { background: #fef0d0; color: #b07a10; text-decoration: none; }
 
     .btn-delete {
         background: #fff1f1;
@@ -168,15 +135,8 @@
         border: 1px solid #f5c6c6;
     }
 
-        .btn-delete:hover {
-            background: #fde0e0;
-            color: #c0392b;
-            text-decoration: none;
-        }
-
-        .btn-edit:active, .btn-delete:active {
-            transform: scale(0.97);
-        }
+    .btn-delete:hover { background: #fde0e0; color: #c0392b; text-decoration: none; }
+    .btn-edit:active, .btn-delete:active { transform: scale(0.97); }
 
     .empty-state {
         text-align: center;
@@ -184,9 +144,43 @@
         color: #aaa;
         font-size: 14px;
     }
+
+    /* Mobile card */
+    .author-mobile-card { display: none; }
+
+    @@media (max-width: 767.98px) {
+        .author-desktop-table { display: none !important; }
+        .author-mobile-card   { display: block; }
+
+        .author-item-card {
+            background: #fff;
+            border: 1px solid #e8e8f0;
+            border-radius: 10px;
+            padding: .85rem 1rem;
+            margin-bottom: .65rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+
+        .author-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+            margin-bottom: 3px;
+        }
+
+        .author-item-meta {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+    }
+
+    @@media (min-width: 768px) {
+        .author-desktop-table { display: block !important; }
+    }
 </style>
 
-<div class="page-header">
+<div class="page-header-bar">
     <h2 class="page-title">
         Tác giả
         <span>Quản lý danh sách tác giả</span>
@@ -196,15 +190,16 @@
     </a>
 </div>
 
-<div class="data-table-wrap">
+<!-- DESKTOP TABLE -->
+<div class="data-table-wrap author-desktop-table">
     <table class="data-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Tên tác giả</th>
-                <th>Tiểu sử</th>
-                <th>Ngày sinh</th>
-                <th>Quốc gia</th>
+                <th class="d-none d-md-table-cell">Tiểu sử</th>
+                <th class="d-none d-lg-table-cell">Ngày sinh</th>
+                <th class="d-none d-md-table-cell">Quốc gia</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -227,9 +222,9 @@
                     <tr>
                         <td class="td-id">#@author.AuthorID</td>
                         <td class="author-name">@author.Name</td>
-                        <td class="td-bio">@(author.Bio?.Length > 60 ? author.Bio.Substring(0, 60) + "…" : author.Bio)</td>
-                        <td class="td-date">@(author.BirthDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                        <td>
+                        <td class="td-bio d-none d-md-table-cell">@(author.Bio?.Length > 60 ? author.Bio.Substring(0, 60) + "…" : author.Bio)</td>
+                        <td class="td-date d-none d-lg-table-cell">@(author.BirthDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td class="d-none d-md-table-cell">
                             @if (!string.IsNullOrEmpty(author.Country))
                             {
                                 <span class="country-badge">@author.Country</span>
@@ -255,4 +250,44 @@
             }
         </tbody>
     </table>
+</div>
+
+<!-- MOBILE CARDS -->
+<div class="author-mobile-card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-user-slash" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+            Chưa có tác giả nào. <a href="@Url.Action("Create")">Thêm ngay?</a>
+        </div>
+    }
+    else
+    {
+        foreach (var author in Model)
+        {
+            <div class="author-item-card">
+                <div class="author-item-name">@author.Name</div>
+                <div class="author-item-meta">
+                    @if (!string.IsNullOrEmpty(author.Country))
+                    {
+                        <span class="country-badge me-1">@author.Country</span>
+                    }
+                    @(author.BirthDate?.ToString("dd/MM/yyyy") ?? "")
+                </div>
+                @if (!string.IsNullOrEmpty(author.Bio))
+                {
+                    <div class="td-bio mb-2">@(author.Bio?.Length > 80 ? author.Bio.Substring(0, 80) + "…" : author.Bio)</div>
+                }
+                <div class="action-group">
+                    <a href="@Url.Action("Edit", new { id = author.AuthorID })" class="btn-edit">
+                        <i class="fas fa-pen" style="font-size:10px;"></i> Sửa
+                    </a>
+                    <a href="@Url.Action("Delete", new { id = author.AuthorID })" class="btn-delete"
+                       onclick="return confirm('Xóa tác giả «@author.Name»?')">
+                        <i class="fas fa-trash" style="font-size:10px;"></i> Xóa
+                    </a>
+                </div>
+            </div>
+        }
+    }
 </div>
